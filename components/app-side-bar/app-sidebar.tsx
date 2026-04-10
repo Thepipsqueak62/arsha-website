@@ -8,25 +8,18 @@ import {
 } from "lucide-react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
-import {
-    Sidebar,
-    SidebarContent,
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarGroupLabel,
-    SidebarHeader,
-    SidebarFooter,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarSeparator,
-    SidebarMenuBadge,
-    SidebarInput,
-    useSidebar
-} from "@/components/ui/sidebar"
+
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import {
+    Sidebar,
+    SidebarContent, SidebarFooter,
+    SidebarGroup, SidebarGroupContent,
+    SidebarGroupLabel,
+    SidebarHeader,
+    SidebarInput, SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarSeparator, useSidebar
+} from "@/components/ui/sidebar";
 
 // Menu items with icons
 const navItems = [
