@@ -1,8 +1,10 @@
 "use client"
 import { useEffect, useState, useMemo } from "react";
-import { Badge } from "@/app/components/ui/badge";
-import { Button } from "@/app/components/ui/button";
-import { Card, CardContent } from "@/app/components/ui/card";
+
+import {Card, CardContent} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {Button} from "@/components/ui/button";
+
 
 const GOLD = "#C9A84C";
 const SURFACE = "#111520";

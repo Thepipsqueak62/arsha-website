@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import {Bebas_Neue, DM_Sans, Geist, Geist_Mono, Inter} from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import Footer from "@/app/components/Footer";
-import Navbar from "@/app/components/Navbar";
-import {ThemeProvider} from "@/app/components/theme-provider";
+import {ThemeProvider} from "@/components/theme-provider";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+
+
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
