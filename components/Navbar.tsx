@@ -543,7 +543,7 @@ const Navbar = () => {
                                 AE
                             </div>
                             <div className="flex flex-col leading-none">
-                                <span className="text-[15px] font-semibold tracking-tight">Arsha ESports</span>
+                                <span className="text-[15px] font-semibold tracking-tight">Arsha Esports</span>
                                 <span className="text-[10px] text-muted-foreground">Competitive Esports Platform</span>
                             </div>
                         </Link>
