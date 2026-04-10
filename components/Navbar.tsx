@@ -5,13 +5,12 @@ import { cn } from "@/lib/utils";
 import {
     Home, Menu, X, Info, Newspaper, Globe, Contact, HatGlasses,
     User, LogOut, UserCircle, LayoutDashboard, ChevronDown, ChevronUp,
-    Settings, HelpCircle, Search, History, TrendingUp, BookOpen,
+    Settings, HelpCircle, Search, History, BookOpen,
     FileText, ChevronRight, type LucideIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Button } from "@/app/components/ui/button";
 import { ROUTE_PATHS } from "@/lib/routes";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -61,6 +60,7 @@ const SearchOverlay = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 
     useEffect(() => {
         if (isOpen) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setQuery("");
             setResults([]);
             setTimeout(() => inputRef.current?.focus(), 80);
@@ -123,7 +123,7 @@ const SearchOverlay = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -12, scale: 0.98 }}
                 transition={{ duration: 0.18, ease: "easeOut" }}
-                className="w-full max-w-[620px] rounded-2xl border border-border/60 bg-background shadow-2xl overflow-hidden"
+                className="w-full max-w-155 rounded-2xl border border-border/60 bg-background shadow-2xl overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Input row */}
@@ -151,7 +151,7 @@ const SearchOverlay = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
                 </form>
 
                 {/* Body */}
-                <div className="max-h-[420px] overflow-y-auto">
+                <div className="max-h-105 overflow-y-auto">
                     {loading ? (
                         <div className="flex items-center justify-center py-12">
                             <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -382,7 +382,7 @@ const UserDropdown = ({ username, logout }: { username: string; logout: () => vo
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-primary/80 to-primary text-[11px] font-semibold text-primary-foreground">
                     {initials}
                 </div>
-                <span className="hidden sm:block max-w-[100px] truncate text-[13.5px]">{username}</span>
+                <span className="hidden sm:block max-w-25 truncate text-[13.5px]">{username}</span>
                 {open ? <ChevronUp size={13} className="text-muted-foreground" /> : <ChevronDown size={13} className="text-muted-foreground" />}
             </button>
 
@@ -397,7 +397,7 @@ const UserDropdown = ({ username, logout }: { username: string; logout: () => vo
                     >
                         {/* Account header */}
                         <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 mb-1">
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/80 to-primary text-[12px] font-semibold text-primary-foreground">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-primary/80 to-primary text-[12px] font-semibold text-primary-foreground">
                                 {initials}
                             </div>
                             <div className="min-w-0">
@@ -461,6 +461,7 @@ const Navbar = () => {
     }, []);
 
     // Close mobile menu on route change
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => { setMobileOpen(false); }, [pathname]);
 
     // Body scroll lock
