@@ -9,6 +9,7 @@ export const ROUTE_PATHS = {
         FEATURES: "esports/features",
         TOURNAMENTNEWS: "/tournament-news",
         NEWSUPDATES: "/news-updates",
+        HELPPAGE: "/help",
 
     },
     ARSHAAPP: {

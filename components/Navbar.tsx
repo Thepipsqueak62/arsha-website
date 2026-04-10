@@ -532,7 +532,7 @@ const Navbar = () => {
                     {/* Announcement banner */}
                     <div className="hidden md:flex items-center justify-center gap-2 py-1.5 bg-primary/5 border-b border-primary/10 text-[12px] font-medium text-primary/80">
                         <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse" />
-                        Welcome to Project-PurpleHaze — next-gen E-Sports platform
+                        Welcome to Project-ARSHA — next-gen E-Sports platform
                     </div>
 
                     <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
@@ -540,11 +540,11 @@ const Navbar = () => {
                         {/* Logo */}
                         <Link href={ROUTE_PATHS.PUBLIC.MAINPAGE} className="group mr-2 flex shrink-0 items-center gap-2.5">
                             <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-primary text-[11px] font-bold text-primary-foreground shadow-sm shadow-primary/30 transition-transform group-hover:scale-105">
-                                PA
+                                AE
                             </div>
                             <div className="flex flex-col leading-none">
-                                <span className="text-[15px] font-semibold tracking-tight">Proj-Ariel</span>
-                                <span className="text-[10px] text-muted-foreground">Project Management</span>
+                                <span className="text-[15px] font-semibold tracking-tight">Arsha ESports</span>
+                                <span className="text-[10px] text-muted-foreground">Competitive Esports Platform</span>
                             </div>
                         </Link>
 
@@ -715,7 +715,7 @@ const Navbar = () => {
 
                                     {/* Footer */}
                                     <div className="mt-6 flex items-center gap-4 pt-4 border-t border-border/30">
-                                        <Link href="/help" className="flex items-center gap-1 text-[11.5px] text-muted-foreground hover:text-foreground">
+                                        <Link href={ROUTE_PATHS.PUBLIC.HELPPAGE} className="flex items-center gap-1 text-[11.5px] text-muted-foreground hover:text-foreground">
                                             <HelpCircle size={12} /> Help
                                         </Link>
                                         <Link href={ROUTE_PATHS.PUBLIC.PRIVACY}   className="text-[11.5px] text-muted-foreground hover:text-foreground">Terms</Link>
