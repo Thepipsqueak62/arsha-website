@@ -1,44 +1,20 @@
 ﻿"use client";
 
 import { useEffect, useState, useRef, type FormEvent } from "react";
-
 import { cn } from "@/lib/utils";
 import {
-    Home,
-    Menu,
-    X,
-    Info,
-    Newspaper,
-    Globe,
-    Contact,
-    HatGlasses,
-    User,
-    LogOut,
-    UserCircle,
-    LayoutDashboard,
-    ChevronDown,
-    ChevronUp,
-    Settings,
-    HelpCircle,
-    Search,
-    History,
-    TrendingUp,
-    BookOpen,
-    FileText,
-    ChevronRight,
-    type LucideIcon,
+    Home, Menu, X, Info, Newspaper, Globe, Contact, HatGlasses,
+    User, LogOut, UserCircle, LayoutDashboard, ChevronDown, ChevronUp,
+    Settings, HelpCircle, Search, History, TrendingUp, BookOpen,
+    FileText, ChevronRight, type LucideIcon,
 } from "lucide-react";
-
-import { AnimatePresence } from "framer-motion";
-
-// Next.js navigation imports — replaces react-router-dom
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-
 import { Button } from "@/app/components/ui/button";
 import { ROUTE_PATHS } from "@/lib/routes";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type NavigationItem = {
     path: string;
@@ -46,17 +22,25 @@ type NavigationItem = {
     icon: LucideIcon;
 };
 
+type SearchResult = {
+    id: number;
+    title: string;
+    category: string;
+    path: string;
+    icon: LucideIcon;
+};
+
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
-const mockSearchResults = [
+const mockSearchResults: SearchResult[] = [
     { id: 1, title: "Getting Started Guide",  category: "Documentation", path: "/docs/getting-started", icon: BookOpen },
-    { id: 2, title: "Project Profile",        category: "Features",       path: "/features/profile",     icon: LayoutDashboard },
-    { id: 3, title: "Team Collaboration",     category: "Features",       path: "/features/team",        icon: Globe },
+    { id: 2, title: "Project Profile",        category: "Features",      path: "/features/profile",     icon: LayoutDashboard },
+    { id: 3, title: "Team Collaboration",     category: "Features",      path: "/features/team",        icon: Globe },
     { id: 4, title: "API Documentation",      category: "Documentation", path: "/docs/api",             icon: FileText },
-    { id: 5, title: "Recent Updates",         category: "Blog",           path: "/blog/updates",         icon: Newspaper },
-    { id: 6, title: "Contact Support",        category: "Help",           path: "/contact",              icon: Contact },
-    { id: 7, title: "Privacy Policy",         category: "Legal",          path: "/privacy",              icon: HatGlasses },
-    { id: 8, title: "User Settings",          category: "Account",        path: "/settings",             icon: Settings },
+    { id: 5, title: "Recent Updates",         category: "Blog",          path: "/blog/updates",         icon: Newspaper },
+    { id: 6, title: "Contact Support",        category: "Help",          path: "/contact-us",           icon: Contact },
+    { id: 7, title: "Privacy Policy",         category: "Legal",         path: "/privacy",              icon: HatGlasses },
+    { id: 8, title: "User Settings",          category: "Account",       path: "/settings",             icon: Settings },
 ];
 
 const mockRecentSearches = [
@@ -68,291 +52,218 @@ const mockRecentSearches = [
 
 // ─── Search Overlay ───────────────────────────────────────────────────────────
 
-const SearchOverlay = ({
-                           isOpen,
-                           onClose,
-                       }: {
-    isOpen: boolean;
-    onClose: () => void;
-}) => {
-    const [searchQuery,   setSearchQuery]   = useState("");
-    const [searchResults, setSearchResults] = useState<typeof mockSearchResults>([]);
-    const [isLoading,     setIsLoading]     = useState(false);
-    const [showResults,   setShowResults]   = useState(false);
-    const searchInputRef = useRef<HTMLInputElement>(null);
-
-    // Next.js: useRouter for programmatic navigation
-    const router = useRouter();
+const SearchOverlay = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+    const [query,   setQuery]   = useState("");
+    const [results, setResults] = useState<SearchResult[]>([]);
+    const [loading, setLoading] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const router   = useRouter();
 
     useEffect(() => {
-        if (isOpen && searchInputRef.current) {
-            setTimeout(() => searchInputRef.current?.focus(), 100);
+        if (isOpen) {
+            setQuery("");
+            setResults([]);
+            setTimeout(() => inputRef.current?.focus(), 80);
         }
     }, [isOpen]);
 
     useEffect(() => {
-        const handleEsc = (e: KeyboardEvent) => {
-            if (e.key === "Escape") onClose();
-        };
-        window.addEventListener("keydown", handleEsc);
-        return () => window.removeEventListener("keydown", handleEsc);
+        const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
     }, [onClose]);
 
-    const handleSearch = (e: FormEvent) => {
-        e.preventDefault();
-        if (!searchQuery.trim()) return;
-
-        setIsLoading(true);
-        setShowResults(true);
-
+    const filter = (q: string) => {
+        const trimmed = q.trim().toLowerCase();
+        if (!trimmed) return setResults([]);
+        setLoading(true);
         setTimeout(() => {
-            const filteredResults = mockSearchResults.filter(
-                (item) =>
-                    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    item.category.toLowerCase().includes(searchQuery.toLowerCase())
+            setResults(
+                mockSearchResults.filter(
+                    (r) => r.title.toLowerCase().includes(trimmed) || r.category.toLowerCase().includes(trimmed)
+                )
             );
-            setSearchResults(filteredResults);
-            setIsLoading(false);
-        }, 300);
+            setLoading(false);
+        }, 200);
     };
 
-    const handleQuickSearch = (query: string) => {
-        setSearchQuery(query);
-        const filteredResults = mockSearchResults.filter(
-            (item) =>
-                item.title.toLowerCase().includes(query.toLowerCase()) ||
-                item.category.toLowerCase().includes(query.toLowerCase())
-        );
-        setSearchResults(filteredResults);
-        setShowResults(true);
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setQuery(e.target.value);
+        filter(e.target.value);
     };
 
-    const handleResultClick = (path: string) => {
-        router.push(path); // Next.js programmatic navigation
+    const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        filter(query);
+    };
+
+    const go = (path: string) => {
+        router.push(path);
         onClose();
-        setSearchQuery("");
-        setShowResults(false);
     };
 
-    const clearSearch = () => {
-        setSearchQuery("");
-        setSearchResults([]);
-        setShowResults(false);
+    const quickSearch = (q: string) => {
+        setQuery(q);
+        filter(q);
     };
 
     if (!isOpen) return null;
 
     return (
-        <div
-            className="fixed inset-0 bg-background/95 dark:bg-background-dark/95 backdrop-blur-md z-50 transition-opacity duration-200"
-            style={{ opacity: isOpen ? 1 : 0 }}
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] px-4 bg-background/80 backdrop-blur-sm"
             onClick={onClose}
         >
-            <div className="container mx-auto px-4 pt-20">
-                <div
-                    className="max-w-3xl mx-auto transition-all duration-200 ease-out"
-                    style={{
-                        transform: isOpen ? "translateY(0)" : "translateY(-20px)",
-                        opacity:   isOpen ? 1 : 0,
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    {/* Search Input */}
-                    <form onSubmit={handleSearch} className="relative group">
-                        <Search
-                            className="absolute left-6 top-1/2 transform -translate-y-1/2 text-foreground/40 group-focus-within:text-primary"
-                            size={24}
-                        />
-                        <input
-                            ref={searchInputRef}
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => {
-                                setSearchQuery(e.target.value);
-                                if (e.target.value.length > 0) {
-                                    handleQuickSearch(e.target.value);
-                                } else {
-                                    setShowResults(false);
-                                }
-                            }}
-                            placeholder="Search documentation, features, help..."
-                            className="w-full pl-16 pr-24 py-5 bg-background dark:bg-background-dark rounded-2xl border-2 border-border/50 dark:border-border-dark/50 shadow-2xl text-lg focus:outline-none focus:border-primary transition-colors"
-                        />
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-                            {searchQuery && (
-                                <button
-                                    type="button"
-                                    onClick={clearSearch}
-                                    className="px-3 py-1 text-sm text-foreground/60 hover:text-foreground bg-muted/50 rounded-lg transition-colors"
-                                >
-                                    Clear
-                                </button>
-                            )}
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                className="px-4 py-2 text-sm bg-muted hover:bg-muted/80 rounded-lg transition-colors"
-                            >
-                                Esc
-                            </button>
+            <motion.div
+                initial={{ opacity: 0, y: -12, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -12, scale: 0.98 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                className="w-full max-w-[620px] rounded-2xl border border-border/60 bg-background shadow-2xl overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Input row */}
+                <form onSubmit={handleSubmit} className="flex items-center gap-3 px-5 py-4 border-b border-border/40">
+                    <Search size={17} className="shrink-0 text-muted-foreground" />
+                    <input
+                        ref={inputRef}
+                        value={query}
+                        onChange={handleChange}
+                        placeholder="Search documentation, features, help…"
+                        className="flex-1 bg-transparent text-[15px] outline-none placeholder:text-muted-foreground/60"
+                    />
+                    {query && (
+                        <button
+                            type="button"
+                            onClick={() => { setQuery(""); setResults([]); }}
+                            className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-md hover:bg-muted/50 transition-colors"
+                        >
+                            Clear
+                        </button>
+                    )}
+                    <kbd className="hidden sm:inline-flex items-center px-2 py-1 text-[11px] font-medium bg-muted rounded-md border border-border/50 text-muted-foreground">
+                        Esc
+                    </kbd>
+                </form>
+
+                {/* Body */}
+                <div className="max-h-[420px] overflow-y-auto">
+                    {loading ? (
+                        <div className="flex items-center justify-center py-12">
+                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                         </div>
-                    </form>
-
-                    {/* Results Panel */}
-                    <div className="mt-6">
-                        {showResults ? (
-                            <div className="bg-background dark:bg-background-dark rounded-xl border border-border/50 dark:border-border-dark/50 shadow-xl overflow-hidden transition-all duration-200">
-                                <div className="p-4 border-b border-border/30 dark:border-border-dark/30">
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="font-semibold text-foreground/80">
-                                            {isLoading ? "Searching..." : `Results (${searchResults.length})`}
-                                        </h3>
-                                        {searchQuery && (
-                                            <span className="text-sm text-foreground/60">
-                                                Search: &#34;{searchQuery}&#34;
-                                            </span>
-                                        )}
-                                    </div>
+                    ) : query && results.length === 0 ? (
+                        <div className="py-12 text-center">
+                            <Search size={32} className="mx-auto mb-3 text-muted-foreground/30" />
+                            <p className="text-sm font-medium text-foreground/70">No results for &ldquo;{query}&rdquo;</p>
+                            <p className="text-xs text-muted-foreground mt-1">Try different keywords</p>
+                        </div>
+                    ) : query && results.length > 0 ? (
+                        <ul className="p-2">
+                            {results.map((r) => {
+                                const Icon = r.icon;
+                                return (
+                                    <li key={r.id}>
+                                        <button
+                                            onClick={() => go(r.path)}
+                                            className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-muted/50 transition-colors"
+                                        >
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/8 group-hover:bg-primary/12 transition-colors">
+                                                <Icon size={16} className="text-primary" />
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-sm font-medium truncate">{r.title}</p>
+                                                <p className="text-xs text-muted-foreground">{r.category}</p>
+                                            </div>
+                                            <ChevronRight size={14} className="shrink-0 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
+                                        </button>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    ) : (
+                        /* Empty state — recent + trending */
+                        <div className="p-4 space-y-5">
+                            <div>
+                                <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+                                    Recent searches
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                    {mockRecentSearches.map((s) => (
+                                        <button
+                                            key={s}
+                                            onClick={() => quickSearch(s)}
+                                            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs bg-muted/60 hover:bg-muted text-foreground/70 hover:text-foreground transition-colors"
+                                        >
+                                            <History size={11} />
+                                            {s}
+                                        </button>
+                                    ))}
                                 </div>
-
-                                {isLoading ? (
-                                    <div className="p-8 text-center">
-                                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-                                        <p className="mt-3 text-foreground/60">Searching...</p>
-                                    </div>
-                                ) : searchResults.length > 0 ? (
-                                    <div className="divide-y divide-border/30 dark:divide-border-dark/30">
-                                        {searchResults.map((result) => {
-                                            const Icon = result.icon;
-                                            return (
+                            </div>
+                            <div>
+                                <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+                                    Trending
+                                </p>
+                                <ul className="space-y-0.5">
+                                    {mockSearchResults.slice(0, 4).map((r) => {
+                                        const Icon = r.icon;
+                                        return (
+                                            <li key={r.id}>
                                                 <button
-                                                    key={result.id}
-                                                    onClick={() => handleResultClick(result.path)}
-                                                    className="w-full text-left p-4 hover:bg-muted/30 dark:hover:bg-muted-dark/30 transition-colors group"
+                                                    onClick={() => go(r.path)}
+                                                    className="group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left hover:bg-muted/50 transition-colors"
                                                 >
-                                                    <div className="flex items-start gap-3">
-                                                        <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                                                            <Icon size={18} className="text-primary" />
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <div className="font-medium group-hover:text-primary transition-colors">
-                                                                {result.title}
-                                                            </div>
-                                                            <div className="text-sm text-foreground/60 mt-1">
-                                                                {result.category} • Click to navigate
-                                                            </div>
-                                                        </div>
-                                                        <ChevronRight
-                                                            className="opacity-0 group-hover:opacity-60 transition-opacity"
-                                                            size={18}
-                                                        />
-                                                    </div>
+                                                    <Icon size={15} className="shrink-0 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+                                                    <span className="flex-1 text-sm">{r.title}</span>
+                                                    <span className="text-xs text-muted-foreground/50">{r.category}</span>
                                                 </button>
-                                            );
-                                        })}
-                                    </div>
-                                ) : (
-                                    <div className="p-8 text-center">
-                                        <Search size={40} className="mx-auto text-foreground/30 mb-3" />
-                                        <h4 className="font-medium text-foreground/80">No results found</h4>
-                                        <p className="text-sm text-foreground/60 mt-1">
-                                            Try different keywords or browse our documentation
-                                        </p>
-                                    </div>
-                                )}
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
                             </div>
-                        ) : searchQuery.length === 0 ? (
-                            <div className="bg-background dark:bg-background-dark rounded-xl border border-border/50 dark:border-border-dark/50 shadow-xl overflow-hidden transition-all duration-200">
-                                <div className="p-4 border-b border-border/30 dark:border-border-dark/30">
-                                    <h3 className="font-semibold text-foreground/80">Recent Searches</h3>
-                                </div>
-                                <div className="p-4">
-                                    <div className="flex flex-wrap gap-2 mb-4">
-                                        {mockRecentSearches.map((search, index) => (
-                                            <button
-                                                key={index}
-                                                onClick={() => handleQuickSearch(search)}
-                                                className="px-3 py-1.5 bg-muted/50 hover:bg-muted rounded-lg text-sm text-foreground/70 hover:text-foreground transition-colors flex items-center gap-2"
-                                            >
-                                                <History size={12} />
-                                                {search}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <div className="space-y-3">
-                                        <h4 className="text-sm font-medium text-foreground/70 flex items-center gap-2">
-                                            <TrendingUp size={14} />
-                                            Trending Searches
-                                        </h4>
-                                        <div className="space-y-2">
-                                            {mockSearchResults.slice(0, 3).map((item) => {
-                                                const Icon = item.icon;
-                                                return (
-                                                    <button
-                                                        key={item.id}
-                                                        onClick={() => handleResultClick(item.path)}
-                                                        className="w-full text-left p-3 rounded-lg hover:bg-muted/30 transition-colors flex items-center gap-3 group"
-                                                    >
-                                                        <Icon
-                                                            size={16}
-                                                            className="text-foreground/50 group-hover:text-primary"
-                                                        />
-                                                        <span className="text-sm">{item.title}</span>
-                                                        <span className="text-xs text-foreground/40 ml-auto">
-                                                            {item.category}
-                                                        </span>
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ) : null}
-                    </div>
-
-                    {/* Keyboard hints */}
-                    <div className="mt-6 text-center">
-                        <div className="inline-flex items-center gap-4 text-sm text-foreground/50">
-                            <span className="flex items-center gap-1">
-                                <kbd className="px-2 py-1 bg-muted rounded text-xs">↑</kbd>
-                                <kbd className="px-2 py-1 bg-muted rounded text-xs">↓</kbd>
-                                <span>to navigate</span>
-                            </span>
-                            <span className="flex items-center gap-1">
-                                <kbd className="px-2 py-1 bg-muted rounded text-xs">Enter</kbd>
-                                <span>to select</span>
-                            </span>
-                            <span className="flex items-center gap-1">
-                                <kbd className="px-2 py-1 bg-muted rounded text-xs">Esc</kbd>
-                                <span>to close</span>
-                            </span>
                         </div>
-                    </div>
+                    )}
                 </div>
-            </div>
-        </div>
+
+                {/* Footer hints */}
+                <div className="flex items-center gap-4 px-5 py-3 border-t border-border/30 bg-muted/20 text-[11px] text-muted-foreground/60">
+                    <span className="flex items-center gap-1">
+                        <kbd className="px-1.5 py-0.5 rounded bg-background border border-border/50">↑</kbd>
+                        <kbd className="px-1.5 py-0.5 rounded bg-background border border-border/50">↓</kbd>
+                        navigate
+                    </span>
+                    <span className="flex items-center gap-1">
+                        <kbd className="px-1.5 py-0.5 rounded bg-background border border-border/50">Enter</kbd>
+                        select
+                    </span>
+                    <span className="flex items-center gap-1">
+                        <kbd className="px-1.5 py-0.5 rounded bg-background border border-border/50">Esc</kbd>
+                        close
+                    </span>
+                </div>
+            </motion.div>
+        </motion.div>
     );
 };
 
 // ─── Auth Hook ────────────────────────────────────────────────────────────────
-// localStorage is client-only; guarded with typeof window check for SSR safety.
 
 const useAuth = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [username,        setUsername]        = useState<string | null>(null);
-
-    // Next.js: useRouter for programmatic navigation
     const router = useRouter();
 
     useEffect(() => {
-        const checkAuth = () => {
-            // Guard: localStorage is unavailable during SSR
+        const check = () => {
             if (typeof window === "undefined") return;
-
-            const token           = localStorage.getItem("token");
-            const storedUsername  = localStorage.getItem("username");
-
+            const token          = localStorage.getItem("token");
+            const storedUsername = localStorage.getItem("username");
             if (token) {
                 setIsAuthenticated(true);
                 if (storedUsername) {
@@ -364,19 +275,16 @@ const useAuth = () => {
                             setUsername(payload.username);
                             localStorage.setItem("username", payload.username);
                         }
-                    } catch (error) {
-                        console.error("Failed to decode token:", error);
-                    }
+                    } catch { /* ignore decode errors */ }
                 }
             } else {
                 setIsAuthenticated(false);
                 setUsername(null);
             }
         };
-
-        checkAuth();
-        window.addEventListener("storage", checkAuth);
-        return () => window.removeEventListener("storage", checkAuth);
+        check();
+        window.addEventListener("storage", check);
+        return () => window.removeEventListener("storage", check);
     }, []);
 
     const logout = () => {
@@ -384,224 +292,167 @@ const useAuth = () => {
         localStorage.removeItem("username");
         setIsAuthenticated(false);
         setUsername(null);
-        router.push(ROUTE_PATHS.PUBLIC.MAINPAGE); // Next.js navigation
+        router.push(ROUTE_PATHS.PUBLIC.MAINPAGE);
     };
 
     return { isAuthenticated, username, logout };
 };
 
-// ─── Desktop Navigation ───────────────────────────────────────────────────────
-// NavLink from react-router-dom → replaced with Next.js <Link> + pathname check.
+// ─── NavLink ──────────────────────────────────────────────────────────────────
 
-const DesktopNavigation = ({
-                               items,
-                               className = "",
-                               showIcons = true,
-                               showActiveIndicator = false,
-                               currentPath,
-                           }: {
-    items: NavigationItem[];
-    className?: string;
-    showIcons?: boolean;
-    showActiveIndicator?: boolean;
+const NavLink = ({
+                     item,
+                     currentPath,
+                     onClick,
+                     mobile = false,
+                 }: {
+    item: NavigationItem;
     currentPath: string;
-}) => (
-    <nav className={cn("hidden lg:flex items-center", className)}>
-        {items.map((item) => {
-            const Icon     = item.icon;
-            const isActive = currentPath === item.path;
-            return (
-                <Link
-                    key={item.path}
-                    href={item.path}
-                    className={cn(
-                        "group relative flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 text-sm hover:bg-muted/50",
-                        "min-w-[80px] justify-center",
-                        isActive
-                            ? "text-primary font-semibold"
-                            : "text-foreground/80 hover:text-foreground"
-                    )}
-                >
-                    {showIcons && <Icon size={16} className="shrink-0" />}
-                    <span className="whitespace-nowrap">{item.label}</span>
-                    {showActiveIndicator && isActive && (
-                        <span className="absolute -bottom-1 left-1/2 w-6 h-0.5 bg-primary rounded-full -translate-x-1/2" />
-                    )}
-                </Link>
-            );
-        })}
-    </nav>
-);
-
-// ─── Mobile Navigation ────────────────────────────────────────────────────────
-
-const MobileNavigation = ({
-                              items,
-                              onItemClick,
-                              className = "",
-                              showIcons = true,
-                              currentPath,
-                          }: {
-    items: NavigationItem[];
-    onItemClick: () => void;
-    className?: string;
-    showIcons?: boolean;
-    currentPath: string;
-}) => (
-    <div className={cn("space-y-1", className)}>
-        {items.map((item) => {
-            const Icon     = item.icon;
-            const isActive = currentPath === item.path;
-            return (
-                <Link
-                    key={item.path}
-                    href={item.path}
-                    onClick={onItemClick}
-                    className={cn(
-                        "flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium transition-all duration-200",
-                        isActive
-                            ? "text-primary bg-primary/10"
-                            : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
-                    )}
-                >
-                    {showIcons && <Icon size={18} className="shrink-0" />}
-                    <span className="text-sm">{item.label}</span>
-                </Link>
-            );
-        })}
-    </div>
-);
-
-// ─── User Dropdown ────────────────────────────────────────────────────────────
-
-const UserDropdown = ({
-                          username,
-                          logout,
-                      }: {
-    username: string;
-    logout: () => void;
+    onClick?: () => void;
+    mobile?: boolean;
 }) => {
-    const [isOpen,    setIsOpen]    = useState(false);
-    const [isMobile,  setIsMobile]  = useState(false);
-    const dropdownRef               = useRef<HTMLDivElement>(null);
+    const Icon     = item.icon;
+    const isActive = currentPath === item.path;
 
-    useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth <= 768);
-        checkMobile();
-        window.addEventListener("resize", checkMobile);
-        return () => window.removeEventListener("resize", checkMobile);
-    }, []);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    const getUserInitials = () => (username ? username.charAt(0).toUpperCase() : "U");
-
-    const userMenuItems: NavigationItem[] = [
-        { label: "Dashboard", icon: LayoutDashboard, path: ROUTE_PATHS.APP.DASHBOARD },
-        { label: "Profile",   icon: UserCircle,      path: ROUTE_PATHS.APP?.PROFILE   || "/profile" },
-        { label: "Settings",  icon: Settings,         path: ROUTE_PATHS.APP?.SETTINGS  || "/settings" },
-    ];
-
-    if (isMobile) {
+    if (mobile) {
         return (
-            <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white text-xs font-semibold">
-                    {getUserInitials()}
-                </div>
-                <span className="text-sm font-medium truncate max-w-[100px]">{username}</span>
-                <Button variant="ghost" size="sm" onClick={logout} className="ml-2">
-                    <LogOut size={16} />
-                </Button>
-            </div>
+            <Link
+                href={item.path}
+                onClick={onClick}
+                className={cn(
+                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                    isActive
+                        ? "bg-primary/8 text-primary"
+                        : "text-foreground/70 hover:bg-muted/60 hover:text-foreground"
+                )}
+            >
+                <Icon size={16} className="shrink-0" />
+                {item.label}
+            </Link>
         );
     }
 
     return (
-        <div className="relative" ref={dropdownRef}>
+        <Link
+            href={item.path}
+            className={cn(
+                "relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors",
+                isActive
+                    ? "text-primary"
+                    : "text-foreground/65 hover:text-foreground hover:bg-muted/50"
+            )}
+        >
+            <Icon size={14} className="shrink-0" />
+            {item.label}
+            {isActive && (
+                <span className="absolute -bottom-px left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-primary" />
+            )}
+        </Link>
+    );
+};
+
+// ─── User Dropdown ────────────────────────────────────────────────────────────
+
+const UserDropdown = ({ username, logout }: { username: string; logout: () => void }) => {
+    const [open, setOpen] = useState(false);
+    const ref             = useRef<HTMLDivElement>(null);
+
+    const initials = username ? username.charAt(0).toUpperCase() : "U";
+
+    const menuItems: { label: string; icon: LucideIcon; path: string }[] = [
+        { label: "Dashboard", icon: LayoutDashboard, path: ROUTE_PATHS.ARSHAAPP.DASHBOARD },
+        { label: "Profile",   icon: UserCircle,      path: ROUTE_PATHS.ARSHAAPP?.PROFILE  || "/profile" },
+        { label: "Settings",  icon: Settings,        path: ROUTE_PATHS.ARSHAAPP?.SETTINGS || "/settings" },
+    ];
+
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, []);
+
+    return (
+        <div className="relative" ref={ref}>
             <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted/50 transition-colors"
+                onClick={() => setOpen(!open)}
+                className="flex items-center gap-2 rounded-xl border border-border/50 bg-background px-2.5 py-1.5 text-sm font-medium transition-colors hover:bg-muted/50"
             >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white text-xs font-semibold">
-                    {getUserInitials()}
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-primary/80 to-primary text-[11px] font-semibold text-primary-foreground">
+                    {initials}
                 </div>
-                <span className="text-sm font-medium truncate max-w-[120px]">{username}</span>
-                {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                <span className="hidden sm:block max-w-[100px] truncate text-[13.5px]">{username}</span>
+                {open ? <ChevronUp size={13} className="text-muted-foreground" /> : <ChevronDown size={13} className="text-muted-foreground" />}
             </button>
 
             <AnimatePresence>
-                {isOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-background dark:bg-background-dark rounded-lg shadow-lg border border-border/50 dark:border-border-dark/50 py-1 z-50">
-                        {userMenuItems.map((item) => {
-                            const Icon = item.icon;
-                            return (
-                                <Link
-                                    key={item.label}
-                                    href={item.path}          // Next.js: href instead of to
-                                    className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted/50 transition-colors"
-                                    onClick={() => setIsOpen(false)}
-                                >
-                                    <Icon size={16} />
-                                    {item.label}
-                                </Link>
-                            );
-                        })}
-                        <div className="border-t border-border/30 dark:border-border-dark/30 my-1" />
+                {open && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 6, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                        transition={{ duration: 0.14, ease: "easeOut" }}
+                        className="absolute right-0 top-full z-50 mt-2 w-52 rounded-2xl border border-border/50 bg-background p-1.5 shadow-xl"
+                    >
+                        {/* Account header */}
+                        <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 mb-1">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/80 to-primary text-[12px] font-semibold text-primary-foreground">
+                                {initials}
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-sm font-medium truncate">{username}</p>
+                                <p className="text-[11px] text-muted-foreground">Free plan</p>
+                            </div>
+                        </div>
+
+                        <div className="h-px bg-border/40 mb-1" />
+
+                        {menuItems.map(({ label, icon: Icon, path }) => (
+                            <Link
+                                key={label}
+                                href={path}
+                                onClick={() => setOpen(false)}
+                                className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13.5px] text-foreground/80 transition-colors hover:bg-muted/60 hover:text-foreground"
+                            >
+                                <Icon size={14} className="shrink-0 text-muted-foreground" />
+                                {label}
+                            </Link>
+                        ))}
+
+                        <div className="h-px bg-border/40 my-1" />
+
                         <button
-                            onClick={() => {
-                                logout();
-                                setIsOpen(false);
-                            }}
-                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted/50 transition-colors text-red-500"
+                            onClick={() => { logout(); setOpen(false); }}
+                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-[13.5px] text-destructive transition-colors hover:bg-destructive/8"
                         >
-                            <LogOut size={16} />
-                            Logout
+                            <LogOut size={14} className="shrink-0" />
+                            Sign out
                         </button>
-                    </div>
+                    </motion.div>
                 )}
             </AnimatePresence>
         </div>
     );
 };
 
-// ─── Navbar (main export) ─────────────────────────────────────────────────────
+// ─── Navbar ───────────────────────────────────────────────────────────────────
 
 const Navbar = () => {
-    const [isOpen,      setIsOpen]      = useState(false);
+    const [mobileOpen,  setMobileOpen]  = useState(false);
     const [scrolled,    setScrolled]    = useState(false);
     const [searchOpen,  setSearchOpen]  = useState(false);
-    const [isMobile,    setIsMobile]    = useState(false);
 
-    // Next.js: usePathname instead of useLocation().pathname
-    const pathname                      = usePathname();
+    const pathname                              = usePathname();
     const { isAuthenticated, username, logout } = useAuth();
-    const navbarRef                     = useRef<HTMLDivElement>(null);
+    const navbarRef                             = useRef<HTMLDivElement>(null);
 
-    // Responsive breakpoint
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth <= 768);
-        handleResize();
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, []);
-
-    // Scroll handler (throttled via rAF)
+    // Scroll shadow
     useEffect(() => {
         let ticking = false;
         const onScroll = () => {
             if (!ticking) {
-                requestAnimationFrame(() => {
-                    setScrolled(window.scrollY > 20);
-                    ticking = false;
-                });
+                requestAnimationFrame(() => { setScrolled(window.scrollY > 8); ticking = false; });
                 ticking = true;
             }
         };
@@ -609,347 +460,284 @@ const Navbar = () => {
         return () => window.removeEventListener("scroll", onScroll);
     }, []);
 
-    // Close mobile menu on route change (pathname from usePathname)
-    useEffect(() => {
-        setIsOpen(false);
-    }, [pathname]);
+    // Close mobile menu on route change
+    useEffect(() => { setMobileOpen(false); }, [pathname]);
 
-    // Lock body scroll when mobile menu is open
+    // Body scroll lock
     useEffect(() => {
-        if (isOpen) {
-            document.body.style.overflow  = "hidden";
-            document.body.style.position  = "fixed";
-            document.body.style.width     = "100%";
-            document.body.style.top       = `-${window.scrollY}px`;
+        if (mobileOpen) {
+            const y = window.scrollY;
+            document.body.style.cssText = `overflow:hidden;position:fixed;width:100%;top:-${y}px`;
         } else {
-            const scrollY = document.body.style.top;
-            document.body.style.overflow  = "";
-            document.body.style.position  = "";
-            document.body.style.width     = "";
-            document.body.style.top       = "";
-            if (scrollY) window.scrollTo(0, parseInt(scrollY) * -1);
+            const top = document.body.style.top;
+            document.body.style.cssText = "";
+            if (top) window.scrollTo(0, parseInt(top) * -1);
         }
-        return () => {
-            document.body.style.overflow  = "";
-            document.body.style.position  = "";
-            document.body.style.width     = "";
-            document.body.style.top       = "";
-        };
-    }, [isOpen]);
+        return () => { document.body.style.cssText = ""; };
+    }, [mobileOpen]);
 
-    // Close menu when clicking outside
+    // Click outside to close
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (isOpen && navbarRef.current && !navbarRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
+        const handler = (e: MouseEvent) => {
+            if (mobileOpen && navbarRef.current && !navbarRef.current.contains(e.target as Node)) {
+                setMobileOpen(false);
             }
         };
-        if (isOpen) document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [isOpen]);
+        if (mobileOpen) document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, [mobileOpen]);
 
-    // Keyboard shortcut: ⌘K or / to open search
+    // Keyboard shortcuts
     useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-                e.preventDefault();
-                setSearchOpen(true);
-            }
-            if (e.key === "/" && !searchOpen && !isOpen) {
-                e.preventDefault();
-                setSearchOpen(true);
-            }
-            if (e.key === "Escape" && isOpen) {
-                setIsOpen(false);
-            }
+        const onKey = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); setSearchOpen(true); }
+            if (e.key === "/" && !searchOpen && !mobileOpen)  { e.preventDefault(); setSearchOpen(true); }
+            if (e.key === "Escape" && mobileOpen)              setMobileOpen(false);
         };
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [searchOpen, isOpen]);
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [searchOpen, mobileOpen]);
 
     // Navigation config
-    const baseNavigation: NavigationItem[] = [
-        { path: ROUTE_PATHS.PUBLIC.MAINPAGE,            label: "Home",     icon: Home },
-        { path: ROUTE_PATHS.PUBLIC?.ABOUT    || "/about",    label: "About",    icon: Info },
-        { path: ROUTE_PATHS.PUBLIC?.FEATURES || "/features", label: "Features", icon: Globe },
+    const primaryNav: NavigationItem[] = [
+        { path: ROUTE_PATHS.PUBLIC.MAINPAGE,           label: "Home",     icon: Home },
+        { path: ROUTE_PATHS.PUBLIC?.ABOUT,             label: "About",    icon: Info },
+        { path: ROUTE_PATHS.PUBLIC?.FEATURES,          label: "Features", icon: Globe },
+        { path: ROUTE_PATHS.PUBLIC?.CONTACT,           label: "Contact",  icon: Contact },
     ];
 
-    const secondaryNavigation: NavigationItem[] = [
-        { path: ROUTE_PATHS.PUBLIC?.CONTACT || "/contact", label: "Contact", icon: Contact },
-        { path: ROUTE_PATHS.PUBLIC?.PRIVACY  || "/privacy", label: "Privacy",  icon: HatGlasses },
+    const secondaryNav: NavigationItem[] = [
+        { path: ROUTE_PATHS.PUBLIC?.PRIVACY || "/privacy", label: "Privacy", icon: HatGlasses },
     ];
 
-    const authNavigation: NavigationItem[] = isAuthenticated
-        ? []
-        : [
-            { path: ROUTE_PATHS.AUTH?.SIGN_IN || "/signin", label: "Sign In", icon: User },
-            { path: ROUTE_PATHS.AUTH?.SIGN_UP || "/signup", label: "Sign Up", icon: UserCircle },
-        ];
+    const authNav: NavigationItem[] = isAuthenticated ? [] : [
+        { path: ROUTE_PATHS.AUTH?.SIGN_IN || "/signin", label: "Sign in", icon: User },
+        { path: ROUTE_PATHS.AUTH?.SIGN_UP || "/signup", label: "Sign up", icon: UserCircle },
+    ];
 
-    const allNavigation = [...baseNavigation, ...secondaryNavigation, ...authNavigation];
+    const allNav = [...primaryNav, ...secondaryNav, ...authNav];
 
     return (
-        <div ref={navbarRef}>
-            <header
-                className={cn(
-                    "fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300",
-                    scrolled
-                        ? "bg-background/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-border/50 dark:border-border-dark/50 shadow-sm"
-                        : "bg-background dark:bg-background-dark border-b border-transparent"
-                )}
-            >
-                {/* Announcement banner */}
-                <div className="hidden md:flex items-center justify-center py-1.5 bg-gradient-to-r from-primary/10 to-primary/5 text-primary text-xs font-medium">
-                    🚀 Welcome to Project-PurpleHaze • Next-gen E-Sports platform
-                </div>
+        <>
+            <div ref={navbarRef}>
+                <header
+                    className={cn(
+                        "fixed inset-x-0 top-0 z-50 transition-all duration-200",
+                        scrolled
+                            ? "bg-background/95 backdrop-blur-md border-b border-border/50 shadow-sm shadow-black/[0.04]"
+                            : "bg-background border-b border-transparent"
+                    )}
+                >
+                    {/* Announcement banner */}
+                    <div className="hidden md:flex items-center justify-center gap-2 py-1.5 bg-primary/5 border-b border-primary/10 text-[12px] font-medium text-primary/80">
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse" />
+                        Welcome to Project-PurpleHaze — next-gen E-Sports platform
+                    </div>
 
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16 lg:h-20">
+                    <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
+
                         {/* Logo */}
-                        <Link
-                            href={ROUTE_PATHS.PUBLIC.MAINPAGE}  // Next.js: href
-                            className="flex items-center gap-2.5 group relative z-10"
-                        >
-                            <div className="w-9 h-9 lg:w-10 lg:h-10 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center shadow-md shadow-primary/20 transition-all duration-300 group-hover:scale-105 group-hover:shadow-primary/30">
-                                <span className="text-white font-bold text-sm">PA</span>
+                        <Link href={ROUTE_PATHS.PUBLIC.MAINPAGE} className="group mr-2 flex shrink-0 items-center gap-2.5">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-primary text-[11px] font-bold text-primary-foreground shadow-sm shadow-primary/30 transition-transform group-hover:scale-105">
+                                PA
                             </div>
-                            <div className="flex flex-col">
-                                <span className="text-lg lg:text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 dark:from-foreground-dark dark:to-foreground-dark/80 bg-clip-text text-transparent">
-                                    Proj-Ariel
-                                </span>
-                                <span className="text-[10px] lg:text-xs text-foreground/60 dark:text-foreground-dark/60 -mt-1">
-                                    Project Management
-                                </span>
+                            <div className="flex flex-col leading-none">
+                                <span className="text-[15px] font-semibold tracking-tight">Proj-Ariel</span>
+                                <span className="text-[10px] text-muted-foreground">Project Management</span>
                             </div>
                         </Link>
 
                         {/* Desktop nav */}
-                        <div className="hidden lg:flex items-center flex-1 justify-center px-8">
-                            <DesktopNavigation
-                                items={allNavigation}
-                                showActiveIndicator
-                                currentPath={pathname}  // Next.js: usePathname()
-                            />
-                        </div>
+                        <nav className="hidden lg:flex items-center gap-0.5 flex-1">
+                            {primaryNav.map((item) => (
+                                <NavLink key={item.path} item={item} currentPath={pathname} />
+                            ))}
+                        </nav>
 
                         {/* Right controls */}
-                        <div className="flex items-center gap-2 lg:gap-3">
-                            {/* Search button (desktop) */}
-                            {!isMobile && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setSearchOpen(true)}
-                                    className="hidden md:flex items-center gap-2 hover:bg-primary/10"
-                                >
-                                    <Search size={16} />
-                                    <span className="hidden lg:inline text-sm">Search</span>
-                                    <kbd className="hidden lg:inline-flex items-center gap-1 px-1.5 py-0.5 text-xs bg-muted rounded ml-2">
-                                        <span className="text-[10px]">⌘</span>K
-                                    </kbd>
-                                </Button>
-                            )}
+                        <div className="ml-auto flex items-center gap-2">
 
-                            {/* Auth area */}
+                            {/* Search button */}
+                            <button
+                                onClick={() => setSearchOpen(true)}
+                                className="hidden md:flex items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-1.5 text-[13px] text-muted-foreground transition-colors hover:border-border hover:bg-muted/60 hover:text-foreground"
+                            >
+                                <Search size={13} className="shrink-0" />
+                                <span className="hidden lg:inline">Search…</span>
+                                <kbd className="hidden lg:inline-flex items-center gap-0.5 rounded border border-border/60 bg-background px-1.5 py-0.5 text-[10px]">
+                                    ⌘K
+                                </kbd>
+                            </button>
+
+                            {/* Auth state */}
                             {isAuthenticated ? (
-                                <UserDropdown username={username || ""} logout={logout} />
+                                <UserDropdown username={username ?? "User"} logout={logout} />
                             ) : (
-                                !isMobile && (
-                                    <div className="hidden lg:flex items-center gap-2">
-                                        {authNavigation.map((item) => {
-                                            const Icon     = item.icon;
-                                            const isSignUp = item.label === "Sign Up";
-                                            return (
-                                                <Link
-                                                    key={item.path}
-                                                    href={item.path}          // Next.js: href
-                                                    className={cn(
-                                                        "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                                                        isSignUp
-                                                            ? "bg-primary text-white hover:bg-primary/90"
-                                                            : "hover:bg-muted/50"
-                                                    )}
-                                                >
-                                                    {!isSignUp && <Icon size={16} className="inline mr-2" />}
-                                                    {item.label}
-                                                </Link>
-                                            );
-                                        })}
-                                    </div>
-                                )
+                                <div className="hidden lg:flex items-center gap-1.5">
+                                    <Link
+                                        href={ROUTE_PATHS.AUTH?.SIGN_IN || "/signin"}
+                                        className="rounded-lg px-3.5 py-2 text-[13.5px] font-medium text-foreground/70 transition-colors hover:bg-muted/60 hover:text-foreground"
+                                    >
+                                        Sign in
+                                    </Link>
+                                    <Link
+                                        href={ROUTE_PATHS.AUTH?.SIGN_UP || "/signup"}
+                                        className="rounded-lg bg-primary px-3.5 py-2 text-[13.5px] font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                                    >
+                                        Get started
+                                    </Link>
+                                </div>
                             )}
-
-                            {/* Theme toggle — keep your existing ModeToggle */}
-                            {/* <ModeToggle /> */}
 
                             {/* Hamburger */}
                             <button
                                 aria-label="Toggle menu"
-                                aria-expanded={isOpen}
-                                onClick={() => setIsOpen(!isOpen)}
-                                className="lg:hidden p-2 rounded-lg hover:bg-muted/50 transition-colors relative z-50"
+                                aria-expanded={mobileOpen}
+                                onClick={() => setMobileOpen(!mobileOpen)}
+                                className="lg:hidden flex h-9 w-9 items-center justify-center rounded-lg border border-border/50 bg-transparent transition-colors hover:bg-muted/60"
                             >
-                                {isOpen ? <X size={22} /> : <Menu size={22} />}
+                                <AnimatePresence mode="wait" initial={false}>
+                                    {mobileOpen ? (
+                                        <motion.span key="x" initial={{ rotate: -45, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 45, opacity: 0 }} transition={{ duration: 0.15 }}>
+                                            <X size={17} />
+                                        </motion.span>
+                                    ) : (
+                                        <motion.span key="m" initial={{ rotate: 45, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -45, opacity: 0 }} transition={{ duration: 0.15 }}>
+                                            <Menu size={17} />
+                                        </motion.span>
+                                    )}
+                                </AnimatePresence>
                             </button>
                         </div>
                     </div>
-                </div>
 
-                {/* ── Mobile Menu ── */}
-                <div
-                    className={cn(
-                        "lg:hidden fixed inset-0 z-40 transition-all duration-300 ease-in-out",
-                        isOpen ? "opacity-100 visible" : "opacity-0 invisible"
-                    )}
-                >
-                    {/* Backdrop */}
-                    <div
-                        className="absolute inset-0 bg-background/80 dark:bg-background-dark/80 backdrop-blur-sm"
-                        style={{ opacity: isOpen ? 1 : 0 }}
-                        onClick={() => setIsOpen(false)}
-                    />
+                    {/* ── Mobile menu ── */}
+                    <AnimatePresence>
+                        {mobileOpen && (
+                            <>
+                                {/* Backdrop */}
+                                <motion.div
+                                    key="backdrop"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="fixed inset-0 top-[calc(theme(spacing.14)+theme(spacing.6))] bg-background/70 backdrop-blur-sm lg:hidden"
+                                    onClick={() => setMobileOpen(false)}
+                                />
 
-                    {/* Slide-in panel */}
-                    <div
-                        className="absolute top-0 right-0 h-full w-full max-w-sm bg-background dark:bg-background-dark border-l border-border/50 dark:border-border-dark/50 shadow-2xl overflow-y-auto transition-transform duration-300 ease-out"
-                        style={{
-                            transform:       isOpen ? "translateX(0)" : "translateX(100%)",
-                            transitionDelay: isOpen ? "0s" : "0.1s",
-                        }}
-                    >
-                        <div className="p-6">
-                            {/* Mobile header */}
-                            <div className="flex items-center justify-between mb-8">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center">
-                                        <span className="text-white font-bold">PA</span>
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-lg">Proj-Ariel</h3>
-                                        {isAuthenticated && username && (
-                                            <p className="text-sm text-foreground/60">Hi, {username}!</p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Search trigger */}
-                            <div className="mb-6">
-                                <button
-                                    onClick={() => {
-                                        setIsOpen(false);
-                                        setTimeout(() => setSearchOpen(true), 300);
-                                    }}
-                                    className="w-full flex items-center gap-3 px-4 py-3 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors"
+                                {/* Panel */}
+                                <motion.div
+                                    key="panel"
+                                    initial={{ opacity: 0, y: -8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -8 }}
+                                    transition={{ duration: 0.18, ease: "easeOut" }}
+                                    className="absolute inset-x-0 top-full z-40 border-b border-border/50 bg-background px-4 pb-6 pt-3 shadow-lg lg:hidden"
                                 >
-                                    <Search className="text-foreground/40" size={18} />
-                                    <span className="text-foreground/70">Search...</span>
-                                    <kbd className="ml-auto px-2 py-1 text-xs bg-background rounded">/</kbd>
-                                </button>
-                            </div>
+                                    {/* Search */}
+                                    <button
+                                        onClick={() => { setMobileOpen(false); setTimeout(() => setSearchOpen(true), 200); }}
+                                        className="mb-4 flex w-full items-center gap-3 rounded-xl border border-border/50 bg-muted/30 px-4 py-2.5 text-[13.5px] text-muted-foreground transition-colors hover:bg-muted/50"
+                                    >
+                                        <Search size={14} />
+                                        Search…
+                                        <kbd className="ml-auto rounded border border-border/50 bg-background px-1.5 py-0.5 text-[11px]">/</kbd>
+                                    </button>
 
-                            {/* Nav sections */}
-                            <div className="space-y-6">
-                                <div>
-                                    <h4 className="text-xs font-semibold text-foreground/50 uppercase tracking-wider mb-3 px-2">
-                                        Main Menu
-                                    </h4>
-                                    <MobileNavigation
-                                        items={baseNavigation}
-                                        onItemClick={() => setIsOpen(false)}
-                                        currentPath={pathname}
-                                    />
-                                </div>
-
-                                <div>
-                                    <h4 className="text-xs font-semibold text-foreground/50 uppercase tracking-wider mb-3 px-2">
-                                        Discover
-                                    </h4>
-                                    <MobileNavigation
-                                        items={secondaryNavigation}
-                                        onItemClick={() => setIsOpen(false)}
-                                        currentPath={pathname}
-                                    />
-                                </div>
-
-                                {!isAuthenticated && (
-                                    <div>
-                                        <h4 className="text-xs font-semibold text-foreground/50 uppercase tracking-wider mb-3 px-2">
-                                            Account
-                                        </h4>
-                                        <MobileNavigation
-                                            items={authNavigation}
-                                            onItemClick={() => setIsOpen(false)}
-                                            currentPath={pathname}
-                                        />
-                                    </div>
-                                )}
-
-                                {isAuthenticated && (
-                                    <div>
-                                        <h4 className="text-xs font-semibold text-foreground/50 uppercase tracking-wider mb-3 px-2">
-                                            Your Account
-                                        </h4>
-                                        <div className="space-y-1">
-                                            <Link
-                                                href={ROUTE_PATHS.APP.DASHBOARD}
-                                                onClick={() => setIsOpen(false)}
-                                                className="flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium hover:bg-muted/50"
-                                            >
-                                                <LayoutDashboard size={18} />
-                                                Dashboard
-                                            </Link>
-                                            <Link
-                                                href={ROUTE_PATHS.APP?.PROFILE || "/profile"}
-                                                onClick={() => setIsOpen(false)}
-                                                className="flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium hover:bg-muted/50"
-                                            >
-                                                <UserCircle size={18} />
-                                                Profile
-                                            </Link>
-                                            <button
-                                                onClick={() => {
-                                                    logout();
-                                                    setIsOpen(false);
-                                                }}
-                                                className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"
-                                            >
-                                                <LogOut size={18} />
-                                                Logout
-                                            </button>
+                                    {/* Primary nav */}
+                                    <div className="mb-4">
+                                        <p className="mb-1.5 px-3 text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+                                            Navigation
+                                        </p>
+                                        <div className="space-y-0.5">
+                                            {primaryNav.map((item) => (
+                                                <NavLink key={item.path} item={item} currentPath={pathname} onClick={() => setMobileOpen(false)} mobile />
+                                            ))}
                                         </div>
                                     </div>
-                                )}
-                            </div>
 
-                            {/* Footer */}
-                            <div className="mt-12 pt-6 border-t border-border/30">
-                                <div className="flex flex-wrap gap-3 mb-4">
-                                    <Link href="/help" className="text-sm text-foreground/60 hover:text-foreground">
-                                        <HelpCircle size={16} className="inline mr-1" /> Help
-                                    </Link>
-                                    <Link href="/terms" className="text-sm text-foreground/60 hover:text-foreground">
-                                        Terms
-                                    </Link>
-                                    <Link href="/cookies" className="text-sm text-foreground/60 hover:text-foreground">
-                                        Cookies
-                                    </Link>
-                                </div>
-                                <p className="text-xs text-foreground/40 text-center">
-                                    © {new Date().getFullYear()} Proj-Ariel. All rights reserved.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
+                                    {/* Secondary nav */}
+                                    <div className="mb-4">
+                                        <p className="mb-1.5 px-3 text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+                                            Company
+                                        </p>
+                                        <div className="space-y-0.5">
+                                            {secondaryNav.map((item) => (
+                                                <NavLink key={item.path} item={item} currentPath={pathname} onClick={() => setMobileOpen(false)} mobile />
+                                            ))}
+                                        </div>
+                                    </div>
 
-            {/* Spacer when mobile menu pushes layout */}
-            {isOpen && <div className="h-16" />}
+                                    <div className="h-px bg-border/40 mb-4" />
 
-            {/* Search overlay */}
-            <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
-        </div>
+                                    {/* Auth section */}
+                                    {isAuthenticated ? (
+                                        <div>
+                                            <p className="mb-1.5 px-3 text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+                                                Your account
+                                            </p>
+                                            <div className="space-y-0.5">
+                                                {[
+                                                    { path: ROUTE_PATHS.ARSHAAPP.DASHBOARD, label: "Dashboard", icon: LayoutDashboard },
+                                                    { path: ROUTE_PATHS.ARSHAAPP?.PROFILE || "/profile", label: "Profile", icon: UserCircle },
+                                                ].map((item) => (
+                                                    <NavLink key={item.path} item={item} currentPath={pathname} onClick={() => setMobileOpen(false)} mobile />
+                                                ))}
+                                                <button
+                                                    onClick={() => { logout(); setMobileOpen(false); }}
+                                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/8"
+                                                >
+                                                    <LogOut size={16} className="shrink-0" />
+                                                    Sign out
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="flex gap-2.5">
+                                            <Link
+                                                href={ROUTE_PATHS.AUTH?.SIGN_IN || "/signin"}
+                                                onClick={() => setMobileOpen(false)}
+                                                className="flex-1 rounded-xl border border-border/60 py-2.5 text-center text-[13.5px] font-medium transition-colors hover:bg-muted/50"
+                                            >
+                                                Sign in
+                                            </Link>
+                                            <Link
+                                                href={ROUTE_PATHS.AUTH?.SIGN_UP || "/signup"}
+                                                onClick={() => setMobileOpen(false)}
+                                                className="flex-1 rounded-xl bg-primary py-2.5 text-center text-[13.5px] font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                                            >
+                                                Get started
+                                            </Link>
+                                        </div>
+                                    )}
+
+                                    {/* Footer */}
+                                    <div className="mt-6 flex items-center gap-4 pt-4 border-t border-border/30">
+                                        <Link href="/help" className="flex items-center gap-1 text-[11.5px] text-muted-foreground hover:text-foreground">
+                                            <HelpCircle size={12} /> Help
+                                        </Link>
+                                        <Link href="/terms"   className="text-[11.5px] text-muted-foreground hover:text-foreground">Terms</Link>
+                                        <Link href="/cookies" className="text-[11.5px] text-muted-foreground hover:text-foreground">Cookies</Link>
+                                        <span className="ml-auto text-[11px] text-muted-foreground/40">
+                                            © {new Date().getFullYear()} Proj-Ariel
+                                        </span>
+                                    </div>
+                                </motion.div>
+                            </>
+                        )}
+                    </AnimatePresence>
+                </header>
+
+                {/* Height spacer */}
+                <div className="h-14" />
+            </div>
+
+            {/* Search overlay (outside header so it renders above everything) */}
+            <AnimatePresence>
+                {searchOpen && <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} />}
+            </AnimatePresence>
+        </>
     );
 };
 

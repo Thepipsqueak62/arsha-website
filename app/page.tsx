@@ -1,331 +1,612 @@
 "use client"
 import { useEffect, useState, useMemo } from "react";
-import {
-  ArrowRight,
-  Sparkles,
-  Rocket,
-  Zap,
-  Users,
-  Code,
-  ShieldCheck,
-  Clock,
-  ChevronRight,
-  Star,
-  CheckCircle,
-  Play,
-  Heart,
-  Calendar,
-} from "lucide-react";
-
+import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent } from "@/app/components/ui/card";
-import { Badge } from "@/app/components/ui/badge";
+
+const GOLD = "#C9A84C";
+const SURFACE = "#111520";
+const SURFACE2 = "#161B2C";
+const MUTED = "rgba(240,237,230,0.5)";
+const BORDER = "rgba(255,255,255,0.07)";
 
 export default function MainPage() {
-  const [isVisible, setIsVisible] = useState(false);
+  const [, setIsVisible] = useState(false);
 
-  // Simplified scroll handler
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 100) {
-        setIsVisible(true);
-      }
-    };
-
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsVisible(true);
-
-    let timeoutId: NodeJS.Timeout;
-    const debouncedScroll = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(handleScroll, 50);
-    };
-
-    window.addEventListener("scroll", debouncedScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", debouncedScroll);
-      clearTimeout(timeoutId);
-    };
   }, []);
 
-  // Memoize static data
   const features = useMemo(() => [
-    { icon: Zap, title: "Lightning Fasttasd", description: "Lighting fast Social Media Platform for gamers", color: "from-yellow-500 to-orange-500" },
-    { icon: Zap, title: "Lightning Fastttasd", description: "Lighting fast Social Media Platform for gamers", color: "from-yellow-500 to-orange-500" },
-    { icon: Zap, title: "Lightning Fasttttasdgdt", description: "Lighting fast Social Media Platform for gamers", color: "from-yellow-500 to-orange-500" },
-    { icon: Zap, title: "Lightning Fastttdfgdtt", description: "Lighting fast Social Media Platform for gamers", color: "from-yellow-500 to-orange-500" },
-    { icon: Zap, title: "Lightning Fasdfdgtttt", description: "Lighting fast Social Media Platform for gamers", color: "from-yellow-500 to-orange-500" },
-    { icon: Zap, title: "Lightning Fastttdfgdf3eetttt", description: "Lighting fast Social Media Platform for gamers", color: "from-yellow-500 to-orange-500" },
+    {
+      title: "Instant Matchmaking",
+      description: "Get into ranked matches in under 30 seconds with our skill-based queuing system.",
+      icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.5" width="16" height="16">
+            <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" />
+          </svg>
+      ),
+    },
+    {
+      title: "Build Your Profile",
+      description: "Showcase your stats, highlight reels, and achievements to scouts and teammates.",
+      icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.5" width="16" height="16">
+            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+          </svg>
+      ),
+    },
+    {
+      title: "Team Management",
+      description: "Organize rosters, schedule scrimmages, and communicate with your squad in one place.",
+      icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.5" width="16" height="16">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+          </svg>
+      ),
+    },
+    {
+      title: "Performance Analytics",
+      description: "Deep-dive stats and heatmaps that reveal exactly where you need to improve.",
+      icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.5" width="16" height="16">
+            <polyline points="22,12 18,12 15,21 9,3 6,12 2,12" />
+          </svg>
+      ),
+    },
+    {
+      title: "Anti-Cheat Protection",
+      description: "Multi-layer detection keeps lobbies clean and rankings trustworthy at all times.",
+      icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.5" width="16" height="16">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+      ),
+    },
+    {
+      title: "Tournament Hub",
+      description: "Browse and register for open brackets, leagues, and sponsored prize-pool events.",
+      icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.5" width="16" height="16">
+            <rect x="2" y="3" width="20" height="14" rx="2" />
+            <path d="M8 21h8M12 17v4" />
+          </svg>
+      ),
+    },
   ], []);
 
   const testimonials = useMemo(() => [
-    { name: "Alex Johnson", role: "Valorant Pro Player", content: "I Love Valorant", avatar: "AJ", rating: 5 },
-    { name: "Peter John", role: "Valorant Pro Player", content: "I Love Valorant", avatar: "AJ", rating: 5 },
-    { name: "Iris Chan", role: "Valorant Pro Player", content: "I Love Valorant", avatar: "AJ", rating: 5 },
+    {
+      name: "Alex Johnson",
+      role: "Valorant — Radiant",
+      initials: "AJ",
+      content: "Finally a platform that understands what competitive players actually need. The analytics alone are worth it.",
+      rating: 5,
+    },
+    {
+      name: "Peter John",
+      role: "Valorant — Immortal 3",
+      initials: "PJ",
+      content: "Found my current team through the platform in less than a week. The matchmaking is genuinely impressive.",
+      rating: 5,
+    },
+    {
+      name: "Iris Chan",
+      role: "Valorant — Diamond 1",
+      initials: "IC",
+      content: "The profile system got me noticed by a sponsor. No other platform comes close to this level of exposure.",
+      rating: 5,
+    },
   ], []);
 
   const stats = useMemo(() => [
-    { value: "10K+", label: "Active Users", icon: Users },
-    { value: "500K$", label: "In Prizes Won", icon: Rocket },
-    { value: "Secure Platform", label: "Security", icon: ShieldCheck },
-    { value: "24/7", label: "Support", icon: Clock },
+    { value: "10K+", label: "Active players" },
+    { value: "$500K", label: "Prizes won" },
+    { value: "100%", label: "Secure platform" },
+    { value: "24/7", label: "Live support" },
   ], []);
 
-  const techStack = useMemo(() => [
-    { name: "React", color: "text-blue-500" },
-    { name: "TypeScript", color: "text-blue-600" },
-    { name: "Tailwind CSS", color: "text-cyan-500" },
-    { name: "Node.js", color: "text-green-500" },
-    { name: "PostgreSQL", color: "text-blue-700" },
-    { name: "Redis", color: "text-red-600" },
-    { name: "Docker", color: "text-blue-400" },
-    { name: "AWS", color: "text-orange-500" },
-  ], []);
+  const techStack = [
+    "React", "TypeScript", "Tailwind CSS", "Node.js",
+    "PostgreSQL", "Redis", "Docker", "AWS",
+  ];
 
   return (
-      <div className="relative overflow-hidden bg-background">
-        {/* SIMPLE STATIC BACKGROUND - No animations */}
-        <div className="fixed inset-0 z-0 bg-gradient-to-b from-background via-background to-muted/10" />
+      <>
+        <style>{`
+        .gp-root {
+          font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
+          background: #0A0C12;
+          color: #F0EDE6;
+          font-size: 15px;
+          line-height: 1.65;
+          overflow-x: hidden;
+        }
 
-        {/* Optional: Very subtle static gradient dots - remove if still heavy */}
-        <div className="fixed inset-0 z-0 opacity-5 pointer-events-none"
-             style={{
-               backgroundImage: `radial-gradient(circle at 25% 25%, rgb(59 130 246 / 20%) 0px, transparent 1px),
-                                           radial-gradient(circle at 75% 75%, rgb(168 85 247 / 20%) 0px, transparent 1px)`,
-               backgroundSize: '80px 80px',
-             }}
-        />
+        /* ── HERO ── */
+        .gp-hero {
+          min-height: 100svh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 5rem 1.25rem 3rem;
+          text-align: center;
+          position: relative;
+          border-bottom: 1px solid ${BORDER};
+        }
+        .gp-hero-glow {
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(ellipse 80% 60% at 50% 0%, rgba(59,125,216,0.12) 0%, transparent 70%),
+            radial-gradient(ellipse 60% 40% at 80% 80%, rgba(201,168,76,0.06) 0%, transparent 60%);
+          pointer-events: none;
+        }
+        .gp-eyebrow-dot {
+          width: 5px; height: 5px;
+          background: ${GOLD};
+          border-radius: 50%;
+          display: inline-block;
+          flex-shrink: 0;
+        }
+        .gp-hero-title {
+          font-family: var(--font-bebas, 'Bebas Neue', sans-serif);
+          font-size: clamp(46px, 12vw, 110px);
+          line-height: 0.95;
+          letter-spacing: 0.04em;
+          margin-bottom: 1.25rem;
+          max-width: 900px;
+        }
+        .gp-hero-sub {
+          font-size: clamp(14px, 2.5vw, 16px);
+          color: ${MUTED};
+          font-weight: 300;
+          max-width: 520px;
+          margin: 0 auto 2rem;
+          line-height: 1.75;
+          padding: 0 0.5rem;
+        }
 
-        {/* Hero Section */}
-        <section className="relative z-10 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-20">
-          <div className="max-w-7xl mx-auto text-center">
-            <div className={`transition-all duration-700 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
-              <Badge className="mb-6 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0">
-                <Sparkles className="w-4 h-4 mr-2" />
-                New: Platform for Gamers by Gamers
-              </Badge>
+        /* ── BUTTONS ── */
+        .gp-btn-row {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+          justify-content: center;
+          margin-bottom: 2.5rem;
+          width: 100%;
+        }
+        .gp-btn-primary {
+          background: ${GOLD} !important;
+          color: #0A0C12 !important;
+          font-size: 11px !important;
+          font-weight: 500 !important;
+          letter-spacing: 0.08em !important;
+          text-transform: uppercase !important;
+          border-radius: 2px !important;
+          border: none !important;
+          height: auto !important;
+          padding: 12px 20px !important;
+          white-space: nowrap;
+          flex: 1 1 auto;
+          max-width: 260px;
+        }
+        .gp-btn-ghost {
+          background: transparent !important;
+          color: #F0EDE6 !important;
+          font-size: 11px !important;
+          font-weight: 500 !important;
+          letter-spacing: 0.08em !important;
+          text-transform: uppercase !important;
+          border-radius: 2px !important;
+          border-color: ${BORDER} !important;
+          height: auto !important;
+          padding: 12px 20px !important;
+          white-space: nowrap;
+          flex: 1 1 auto;
+          max-width: 260px;
+        }
 
-              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight">
-                                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 py-3">
-                                    Built for the future of competitive Gaming
-                                </span>
+        /* ── STATS ── */
+        .gp-stats {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1px;
+          background: ${BORDER};
+          border: 1px solid ${BORDER};
+          border-radius: 2px;
+          width: 100%;
+          max-width: 820px;
+          overflow: hidden;
+        }
+        .gp-stat {
+          background: ${SURFACE};
+          padding: 1.1rem 0.75rem;
+          text-align: center;
+        }
+        .gp-stat-val {
+          font-family: var(--font-bebas, 'Bebas Neue', sans-serif);
+          font-size: clamp(26px, 5vw, 36px);
+          letter-spacing: 0.04em;
+          color: #fff;
+          display: block;
+          margin-bottom: 3px;
+        }
+        .gp-stat-label {
+          font-size: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: ${MUTED};
+        }
 
-              </h1>
+        /* ── SECTIONS ── */
+        .gp-section {
+          max-width: 1100px;
+          margin: 0 auto;
+          padding: 3.5rem 1.25rem;
+        }
+        .gp-section-head { margin-bottom: 2rem; }
+        .gp-section-label {
+          font-size: 11px;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: ${GOLD};
+          font-weight: 500;
+          margin-bottom: 0.75rem;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .gp-section-label-line {
+          display: inline-block;
+          width: 24px; height: 1px;
+          background: ${GOLD};
+          flex-shrink: 0;
+        }
+        .gp-section-title {
+          font-family: var(--font-bebas, 'Bebas Neue', sans-serif);
+          font-size: clamp(28px, 5vw, 54px);
+          line-height: 1.0;
+          letter-spacing: 0.04em;
+        }
+        .gp-divider { height: 1px; background: ${BORDER}; }
 
-              <p className="mt-6 text-xl sm:text-2xl text-foreground/70 max-w-3xl mx-auto leading-relaxed">
-                The ultimate platform for competitive gaming and collaborations. build your profile today
-                and show the world what you&#39;re made of
-              </p>
+        /* ── FEATURES ── */
+        .gp-features-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 1px;
+          background: ${BORDER};
+          border: 1px solid ${BORDER};
+        }
+        .gp-feature-card {
+          background: ${SURFACE} !important;
+          border: none !important;
+          border-radius: 0 !important;
+          transition: background 0.2s;
+          cursor: default;
+        }
+        .gp-feature-card:hover { background: ${SURFACE2} !important; }
+        .gp-feature-icon {
+          width: 36px; height: 36px;
+          border: 1px solid rgba(201,168,76,0.35);
+          display: flex; align-items: center; justify-content: center;
+          margin-bottom: 1.25rem;
+          border-radius: 2px;
+          flex-shrink: 0;
+        }
+        .gp-feature-title {
+          font-family: var(--font-bebas, 'Bebas Neue', sans-serif);
+          font-size: 22px;
+          letter-spacing: 0.05em;
+          margin-bottom: 0.5rem;
+          color: #F0EDE6;
+        }
+        .gp-feature-desc {
+          font-size: 14px;
+          color: ${MUTED};
+          line-height: 1.7;
+          font-weight: 300;
+          margin: 0;
+        }
 
-              <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="group px-8 py-6 text-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
-                  Sign Up Today
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-                </Button>
-                <Button size="lg" variant="outline" className="group px-8 py-6 text-lg border-2 hover:border-primary transition-colors duration-300">
-                  <Play className="w-5 h-5 mr-2" />
-                  Watch Demo
-                </Button>
+        /* ── TECH ── */
+        .gp-tech-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1px;
+          background: ${BORDER};
+          border: 1px solid ${BORDER};
+        }
+        .gp-tech-card {
+          background: ${SURFACE} !important;
+          border: none !important;
+          border-radius: 0 !important;
+          transition: background 0.2s;
+        }
+        .gp-tech-card:hover { background: ${SURFACE2} !important; }
+        .gp-tech-label {
+          padding: 1.1rem 1rem !important;
+          text-align: center;
+          font-size: 13px;
+          font-weight: 500;
+          letter-spacing: 0.04em;
+          color: ${MUTED};
+        }
+
+        /* ── TESTIMONIALS ── */
+        .gp-testimonials-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 12px;
+        }
+        .gp-tcard {
+          background: ${SURFACE} !important;
+          border: 1px solid ${BORDER} !important;
+          border-radius: 2px !important;
+        }
+        .gp-avatar {
+          width: 42px; height: 42px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #3B7DD8 0%, #C9A84C 100%);
+          display: flex; align-items: center; justify-content: center;
+          font-family: var(--font-bebas, 'Bebas Neue', sans-serif);
+          font-size: 16px; letter-spacing: 0.05em;
+          color: #0A0C12;
+          flex-shrink: 0;
+        }
+
+        /* ── CTA ── */
+        .gp-cta-wrap {
+          max-width: 1100px;
+          margin: 0 auto;
+          padding: 0 1.25rem 3.5rem;
+        }
+        .gp-cta-card {
+          background: ${SURFACE} !important;
+          border: 1px solid ${BORDER} !important;
+          border-radius: 2px !important;
+          overflow: hidden;
+          position: relative;
+        }
+        .gp-cta-glow {
+          position: absolute; inset: 0;
+          background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(59,125,216,0.08) 0%, transparent 70%);
+          pointer-events: none;
+        }
+        .gp-cta-content {
+          padding: 2.5rem 1.25rem !important;
+          text-align: center;
+          position: relative;
+        }
+        .gp-cta-title {
+          font-family: var(--font-bebas, 'Bebas Neue', sans-serif);
+          font-size: clamp(34px, 7vw, 68px);
+          line-height: 1.0;
+          letter-spacing: 0.04em;
+          margin-bottom: 1rem;
+          color: #F0EDE6;
+        }
+        .gp-cta-sub {
+          font-size: 15px;
+          color: ${MUTED};
+          font-weight: 300;
+          max-width: 440px;
+          margin: 0 auto 2rem;
+          line-height: 1.75;
+        }
+        .gp-trust-row {
+          display: flex;
+          justify-content: center;
+          gap: 0.75rem 1.5rem;
+          flex-wrap: wrap;
+          margin-top: 1.5rem;
+        }
+        .gp-trust-item {
+          display: flex; align-items: center; gap: 6px;
+          font-size: 12px; color: ${MUTED};
+        }
+
+        /* ── TABLET 640px+ ── */
+        @media (min-width: 640px) {
+          .gp-hero { padding: 6rem 2rem 4rem; }
+          .gp-btn-primary { font-size: 13px !important; padding: 14px 28px !important; flex: 0 0 auto; }
+          .gp-btn-ghost   { font-size: 13px !important; padding: 14px 28px !important; flex: 0 0 auto; }
+          .gp-btn-row { margin-bottom: 3.5rem; }
+          .gp-stats { grid-template-columns: repeat(4, 1fr); }
+          .gp-stat { padding: 1.5rem 1rem; }
+          .gp-section { padding: 5rem 2rem; }
+          .gp-section-head { margin-bottom: 3rem; }
+          .gp-tech-grid { grid-template-columns: repeat(4, 1fr); }
+          .gp-testimonials-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+          .gp-cta-content { padding: 4rem 3rem !important; }
+          .gp-cta-wrap { padding: 0 2rem 5rem; }
+        }
+
+        /* ── DESKTOP 1024px+ ── */
+        @media (min-width: 1024px) {
+          .gp-features-grid { grid-template-columns: repeat(3, 1fr); }
+          .gp-section { padding: 6rem 2rem; }
+          .gp-section-head { margin-bottom: 3.5rem; }
+          .gp-cta-content { padding: 5rem 4rem !important; }
+          .gp-cta-wrap { padding: 0 2rem 6rem; }
+        }
+      `}</style>
+
+        <div className="gp-root">
+
+          {/* ── HERO ── */}
+          <section className="gp-hero">
+            <div className="gp-hero-glow" />
+
+            <Badge
+                variant="outline"
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 500,
+                  letterSpacing: "0.14em",
+                  textTransform: "uppercase",
+                  color: GOLD,
+                  borderColor: "rgba(201,168,76,0.3)",
+                  borderRadius: "2px",
+                  padding: "6px 16px",
+                  marginBottom: "2rem",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  background: "transparent",
+                }}
+            >
+              <span className="gp-eyebrow-dot" />
+              Platform for gamers, by gamers
+            </Badge>
+
+            <h1 className="gp-hero-title">
+              Built for the future of{" "}
+              <span style={{ color: GOLD }}>competitive</span> gaming
+            </h1>
+
+            <p className="gp-hero-sub">
+              The ultimate platform to build your competitive profile, find tournaments,
+              and connect with the best players in the world.
+            </p>
+
+            <div className="gp-btn-row">
+              <Button size="lg" className="gp-btn-primary">
+                Create your profile →
+              </Button>
+              <Button size="lg" variant="outline" className="gp-btn-ghost">
+                ▶ Watch demo
+              </Button>
+            </div>
+
+            <div className="gp-stats">
+              {stats.map((s) => (
+                  <div key={s.label} className="gp-stat">
+                    <span className="gp-stat-val">{s.value}</span>
+                    <span className="gp-stat-label">{s.label}</span>
+                  </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── FEATURES ── */}
+          <div className="gp-section">
+            <div className="gp-section-head">
+              <div className="gp-section-label">
+                <span className="gp-section-label-line" />
+                Why us
               </div>
+              <h2 className="gp-section-title">
+                Everything you need to <span style={{ color: GOLD }}>compete</span> at your best
+              </h2>
+            </div>
+            <div className="gp-features-grid">
+              {features.map((f) => (
+                  <Card key={f.title} className="gp-feature-card">
+                    <CardContent style={{ padding: "2rem 1.75rem" }}>
+                      <div className="gp-feature-icon">{f.icon}</div>
+                      <div className="gp-feature-title">{f.title}</div>
+                      <p className="gp-feature-desc">{f.description}</p>
+                    </CardContent>
+                  </Card>
+              ))}
+            </div>
+          </div>
 
-              {/* Stats Badges */}
-              <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-                {stats.map((stat) => {
-                  const Icon = stat.icon;
-                  return (
-                      <div
-                          key={stat.label}
-                          className="p-4 bg-background/50 backdrop-blur-sm rounded-2xl border border-border/50 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
-                      >
-                        <div className="flex items-center justify-center gap-2">
-                          <Icon className="w-5 h-5 text-primary" />
-                          <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+          <div className="gp-divider" />
+
+          {/* ── TECH STACK ── */}
+          <div className="gp-section">
+            <div className="gp-section-head">
+              <div className="gp-section-label">
+                <span className="gp-section-label-line" />
+                Infrastructure
+              </div>
+              <h2 className="gp-section-title">
+                Powered by <span style={{ color: GOLD }}>best-in-class</span> technology
+              </h2>
+            </div>
+            <div className="gp-tech-grid">
+              {techStack.map((t) => (
+                  <Card key={t} className="gp-tech-card">
+                    <CardContent className="gp-tech-label">{t}</CardContent>
+                  </Card>
+              ))}
+            </div>
+          </div>
+
+          <div className="gp-divider" />
+
+          {/* ── TESTIMONIALS ── */}
+          <div className="gp-section">
+            <div className="gp-section-head">
+              <div className="gp-section-label">
+                <span className="gp-section-label-line" />
+                Community
+              </div>
+              <h2 className="gp-section-title">
+                Trusted by <span style={{ color: GOLD }}>pro players</span>
+              </h2>
+            </div>
+            <div className="gp-testimonials-grid">
+              {testimonials.map((t) => (
+                  <Card key={t.name} className="gp-tcard">
+                    <CardContent style={{ padding: "1.75rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "1.25rem" }}>
+                        <div className="gp-avatar">{t.initials}</div>
+                        <div>
+                          <div style={{ fontWeight: 500, fontSize: "14px", color: "#F0EDE6" }}>{t.name}</div>
+                          <div style={{ fontSize: "12px", color: MUTED }}>{t.role}</div>
                         </div>
-                        <div className="mt-2 text-sm text-foreground/60">{stat.label}</div>
                       </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Features Section */}
-        <section className="relative z-10 py-20 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            <div className={`text-center mb-16 transition-all duration-700 ease-out delay-100 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
-              <Badge variant="outline" className="mb-4 px-4 py-2">
-                <Zap className="w-4 h-4 mr-2" />
-                We are different
-              </Badge>
-              <h2 className="text-4xl sm:text-5xl font-bold mt-4">
-                Everything you need to{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
-                                    succeed
-                                </span>
-              </h2>
-              <p className="mt-4 text-xl text-foreground/70 max-w-3xl mx-auto">
-                Packed with features designed to help you build your own competitive profile
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {features.map((feature, index) => {
-                const Icon = feature.icon;
-                const delayClass = `delay-[${index * 100}ms]`;
-                return (
-                    <div
-                        key={feature.title}
-                        className={`group transition-all duration-500 ease-out hover:-translate-y-1 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'} ${delayClass}`}
-                    >
-                      <Card className="h-full bg-background/50 backdrop-blur-sm border-border/50 hover:border-primary/50 transition-all duration-300 overflow-hidden hover:shadow-2xl">
-                        <CardContent className="p-8">
-                          <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${feature.color} mb-6`}>
-                            <Icon className="w-8 h-8 text-white" />
-                          </div>
-                          <h3 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors duration-300">
-                            {feature.title}
-                          </h3>
-                          <p className="text-foreground/70 mb-6">{feature.description}</p>
-                          <div className="flex items-center text-primary font-medium group-hover:gap-3 transition-all duration-300">
-                            Learn more
-                            <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* Tech Stack Section */}
-        <section className="relative z-10 py-20 bg-gradient-to-b from-background to-muted/20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className={`text-center mb-16 transition-all duration-700 ease-out delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
-              <Badge variant="outline" className="mb-4 px-4 py-2">
-                <Code className="w-4 h-4 mr-2" />
-                Built With Modern Tech
-              </Badge>
-              <h2 className="text-4xl sm:text-5xl font-bold mt-4">
-                Powered by the{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
-                                    Best in Class
-                                </span>
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols- gap-4 mb-12 ">
-              {techStack.map((tech, index) => {
-                const delayClass = `delay-[${index * 50}ms]`;
-                return (
-                    <div
-                        key={tech.name}
-                        className={`group relative p-6 bg-background/50 backdrop-blur-sm rounded-2xl border border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} ${delayClass}`}
-                    >
-                      <div className="relative text-center">
-                        <div className={`text-2xl font-bold ${tech.color}`}>{tech.name}</div>
+                      <p style={{ fontSize: "14px", color: MUTED, lineHeight: 1.75, fontWeight: 300, fontStyle: "italic", marginBottom: "1rem" }}>
+                        &ldquo;{t.content}&rdquo;
+                      </p>
+                      <div style={{ color: GOLD, fontSize: "13px", letterSpacing: "2px" }}>
+                        {"★".repeat(t.rating)}
                       </div>
-                    </div>
-                );
-              })}
+                    </CardContent>
+                  </Card>
+              ))}
             </div>
           </div>
-        </section>
 
-        {/* Testimonials Section */}
-        <section className="relative z-10 py-20 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            <div className={`text-center mb-16 transition-all duration-700 ease-out delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
-              <Badge variant="outline" className="mb-4 px-4 py-2">
-                <Heart className="w-4 h-4 mr-2" />
-                Loved by Teams
-              </Badge>
-              <h2 className="text-4xl sm:text-5xl font-bold mt-4">
-                Trusted by{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
-                                    Pro Players
-                                </span>
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {testimonials.map((testimonial, index) => {
-                const delayClass = `delay-[${index * 200}ms]`;
-                return (
-                    <Card
-                        key={testimonial.name}
-                        className={`bg-background/50 backdrop-blur-sm border-border/50 transition-all duration-500 hover:shadow-xl ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-7'} ${delayClass}`}
-                    >
-                      <CardContent className="p-8">
-                        <div className="flex items-center mb-6">
-                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-                            {testimonial.avatar}
-                          </div>
-                          <div className="ml-4">
-                            <h4 className="font-bold text-lg">{testimonial.name}</h4>
-                            <p className="text-foreground/60 text-sm">{testimonial.role}</p>
-
-
-                          </div>
-                        </div>
-                        <p className="text-foreground/80 mb-4 italic">&#34;{testimonial.content}&#34;</p>
-                        <div className="flex">
-                          {[...Array(testimonial.rating)].map((_, i) => (
-                              <Star key={i} className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                );
-              })}
-            </div>
+          {/* ── CTA ── */}
+          <div className="gp-cta-wrap">
+            <Card className="gp-cta-card">
+              <div className="gp-cta-glow" />
+              <CardContent className="gp-cta-content">
+                <h2 className="gp-cta-title">
+                  Are you up for the <span style={{ color: GOLD }}>challenge?</span>
+                </h2>
+                <p className="gp-cta-sub">
+                  Join thousands of players already competing in tournaments. Build your profile today.
+                </p>
+                <div className="gp-btn-row" style={{ marginBottom: 0 }}>
+                  <Button size="lg" className="gp-btn-primary">
+                    Sign up — it&apos;s free →
+                  </Button>
+                  <Button size="lg" variant="outline" className="gp-btn-ghost">
+                    Contact us
+                  </Button>
+                </div>
+                <div className="gp-trust-row">
+                  {["No credit card required", "14-day free trial", "Cancel anytime"].map((item) => (
+                      <span key={item} className="gp-trust-item">
+                    <span style={{ color: "#4CAF78" }}>✓</span> {item}
+                  </span>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </section>
 
-        {/* CTA Section */}
-        <section className="relative z-10 py-20 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto">
-            <div className={`relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 backdrop-blur-sm border border-border/50 p-8 sm:p-12 text-center transition-all duration-700 ease-out delay-400 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-98'}`}>
-              <h2 className="text-4xl sm:text-5xl font-bold mb-6">
-                Are you up for the challenge?{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-                                    Sign Up Today
-                                </span>
-              </h2>
-              <p className="text-xl text-foreground/70 mb-10 max-w-2xl mx-auto">
-                Join thousands of players already competing in tournaments today.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <Button size="lg" className="group px-8 py-6 text-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
-                  Sign Up Today
-                  <Rocket className="ml-3 w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
-                </Button>
-                <Button size="lg" variant="outline" className="group px-8 py-6 text-lg border-2 hover:border-primary transition-colors duration-300">
-                  Contact Us
-                  <Calendar className="ml-3 w-5 h-5" />
-                </Button>
-              </div>
-
-              <div className="mt-10 flex flex-wrap justify-center gap-4 text-sm text-foreground/60">
-                <div className="flex items-center">
-                  <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
-                  No credit card required
-                </div>
-                <div className="flex items-center">
-                  <Clock className="w-4 h-4 mr-2 text-blue-500" />
-                  14-day free trial
-                </div>
-                <div className="flex items-center">
-                  <ShieldCheck className="w-4 h-4 mr-2 text-purple-500" />
-                  Cancel anytime
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
+        </div>
+      </>
   );
 }
