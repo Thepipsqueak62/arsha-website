@@ -718,8 +718,8 @@ const Navbar = () => {
                                         <Link href="/help" className="flex items-center gap-1 text-[11.5px] text-muted-foreground hover:text-foreground">
                                             <HelpCircle size={12} /> Help
                                         </Link>
-                                        <Link href="/terms"   className="text-[11.5px] text-muted-foreground hover:text-foreground">Terms</Link>
-                                        <Link href="/cookies" className="text-[11.5px] text-muted-foreground hover:text-foreground">Cookies</Link>
+                                        <Link href={ROUTE_PATHS.PUBLIC.PRIVACY}   className="text-[11.5px] text-muted-foreground hover:text-foreground">Terms</Link>
+                                        <Link href={ROUTE_PATHS.PUBLIC.PRIVACY}  className="text-[11.5px] text-muted-foreground hover:text-foreground">Cookies</Link>
                                         <span className="ml-auto text-[11px] text-muted-foreground/40">
                                             © {new Date().getFullYear()} Proj-Ariel
                                         </span>
