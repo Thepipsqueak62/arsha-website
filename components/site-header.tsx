@@ -1,5 +1,5 @@
 ﻿// components/site-header.tsx
-import { SidebarTrigger } from "@/app/components/ui/sidebar"
+import { SidebarTrigger } from "@/components/ui/sidebar"
 
 
 export function SiteHeader() {
