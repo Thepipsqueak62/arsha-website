@@ -23,10 +23,10 @@ import {
     SidebarMenuBadge,
     SidebarInput,
     useSidebar
-} from "@/app/components/ui/sidebar"
+} from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar"
-import { Button } from "@/app/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 
 // Menu items with icons
 const navItems = [
