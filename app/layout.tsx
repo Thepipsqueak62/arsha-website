@@ -23,7 +23,33 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ArshaEsports",
   description: "Future Competitive Esports Platform",
-  manifest:"/manifest.json",
+  manifest: "/manifest.json",
+
+  // Open Graph (Discord, Facebook, iMessage, etc.)
+  openGraph: {
+    title: "ArshaEsports",
+    description: "Future Competitive Esports Platform",
+    url: "https://arsha-website-six.vercel.app/", // ← your actual URL
+    siteName: "ArshaEsports",
+    images: [
+      {
+        url: "web-app-manifest-512x512", // ← 1200x630px image in /public
+        width: 1200,
+        height: 630,
+        alt: "ArshaEsports",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+
+  // Twitter/X cards
+  twitter: {
+    card: "summary_large_image",
+    title: "ArshaEsports",
+    description: "Future Competitive Esports Platform",
+    images: ["/og-image.png"],
+  },
 };
 const bebasNeue = Bebas_Neue({
   weight: "400",
