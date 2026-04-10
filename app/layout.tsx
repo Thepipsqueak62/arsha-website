@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     siteName: "ArshaEsports",
     images: [
       {
-        url: "web-app-manifest-512x512", // ← 1200x630px image in /public
+        url: "/web-app-manifest-512x512", // ← 1200x630px image in /public
         width: 1200,
         height: 630,
         alt: "ArshaEsports",
