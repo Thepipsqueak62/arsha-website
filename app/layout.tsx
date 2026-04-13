@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import {ThemeProvider} from "@/components/theme-provider";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import {Toaster} from "sonner";
 
 
 
@@ -77,17 +78,18 @@ export default function RootLayout({
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
     >
 
-      <body   className="min-h-full flex flex-col"
+      <body   className={`min-h-full flex flex-col`}
       >
       <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
       >
         <Navbar/>
         {children}
         <Footer/>
+        <Toaster />
       </ThemeProvider>
       </body>
     </html>

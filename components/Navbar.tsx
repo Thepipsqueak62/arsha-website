@@ -503,7 +503,6 @@ const Navbar = () => {
     const primaryNav: NavigationItem[] = [
         { path: ROUTE_PATHS.PUBLIC.MAINPAGE,           label: "Home",     icon: Home },
         { path: ROUTE_PATHS.PUBLIC?.ABOUT,             label: "About",    icon: Info },
-        { path: ROUTE_PATHS.PUBLIC?.FEATURES,          label: "Features", icon: Globe },
         { path: ROUTE_PATHS.PUBLIC?.CONTACT,           label: "Contact",  icon: Contact },
     ];
 
