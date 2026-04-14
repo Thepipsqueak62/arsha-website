@@ -13,7 +13,8 @@ export default function ForgotPasswordPage() {
         const { error } = await authClient.emailOtp.requestPasswordReset({ email });
         if (error) return setStatus(`Error: ${error.message}`);
         // Pass email via query param to the reset page
-        router.push(`/arsha/reset-password?email=${encodeURIComponent(email)}`);
+        sessionStorage.setItem("resetEmail", email);
+        router.push("/arsha/reset-password");
     }
 
     return (

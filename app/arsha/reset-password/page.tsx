@@ -1,19 +1,29 @@
-﻿"use client";
-import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+﻿// app/arsha/reset-password/page.tsx
+"use client";
+import { useState, Suspense, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
 function ResetForm() {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const emailFromParams = searchParams.get("email") ?? "";
 
-    const [email, setEmail] = useState(emailFromParams);
+    // ✅ Read email from sessionStorage instead of URL
+    const [email, setEmail] = useState("");
     const [otp, setOtp] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [status, setStatus] = useState("");
     const [loading, setLoading] = useState(false);
+
+    // ✅ Get email from sessionStorage on mount
+    useEffect(() => {
+        const savedEmail = sessionStorage.getItem("resetEmail");
+        if (savedEmail) {
+            setEmail(savedEmail);
+            // Optional: Clear after reading
+            // sessionStorage.removeItem("resetEmail");
+        }
+    }, []);
 
     async function handleReset() {
         if (!email || !otp || !password) {
@@ -44,7 +54,9 @@ function ResetForm() {
             setStatus(`Error: ${error.message}`);
         } else {
             setStatus("✅ Password reset successfully! Redirecting to sign in...");
-            setTimeout(() => router.push("/"), 2000);
+            // ✅ Clear the stored email
+            sessionStorage.removeItem("resetEmail");
+            setTimeout(() => router.push("/arsha/sign-in"), 2000);
         }
         setLoading(false);
     }

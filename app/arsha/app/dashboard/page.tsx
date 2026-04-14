@@ -1,12 +1,19 @@
 ﻿import React from 'react';
+import SignOutButton from "@/components/SignOutBtn";
+import { requireAuth } from "@/lib/auth-server";
 
-const DashboardMain = () => {
+export default async function DashboardPage() {
+    const session = await requireAuth();
+
     return (
-        <div className="flex items-center justify-center min-h-screen ">
-            Welcome to your Dashboard
-
-        </div>
+        <main className="max-w-2xl mx-auto px-6 py-16">
+            <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
+            <p className="mt-2 text-gray-500">Welcome back, {session.user.name}</p>
+            <SignOutButton/>
+        </main>
     );
-};
+}
 
-export default DashboardMain;
+
+
+
