@@ -2,17 +2,20 @@
 
 import * as React from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import {
-    Home,
-    User,
-    Trophy,
-    Users,
-    Settings,
-    ChevronLeft,
-    Wifi,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
 import { usePathname, useRouter } from "next/navigation"
+import { cn } from "@/lib/utils"
+
+import {
+    RiHome5Fill,
+    RiUserFill,
+    RiTrophyFill,
+    RiTeamFill,
+    RiSettings4Fill,
+    RiFlashlightFill
+} from "react-icons/ri"
+import { PiCaretDoubleLeftBold } from "react-icons/pi"
+import { HiSparkles } from "react-icons/hi2"
+import { MdKeyboardCommandKey } from "react-icons/md"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,6 +24,7 @@ interface NavItem {
     icon: React.ElementType
     href: string
     badge?: number
+    color?: string
 }
 
 interface NavSection {
@@ -28,376 +32,413 @@ interface NavSection {
     items: NavItem[]
 }
 
-// ─── Nav config ───────────────────────────────────────────────────────────────
+// ─── Constants ─────────────────────────────────────────────────────────────────
 
 const NAV: NavSection[] = [
     {
         label: "Main",
         items: [
-            { label: "Feed",    icon: Home,   href: "/arsha/app/feed",    badge: 12 },
-            { label: "Profile", icon: User,   href: "/arsha/app/profile" },
+            { label: "Feed",    icon: RiHome5Fill,  href: "/arsha/app/feed",    badge: 12 },
+            { label: "Profile", icon: RiUserFill,   href: "/arsha/app/profile" },
         ],
     },
     {
         label: "Compete",
         items: [
-            { label: "Tournaments", icon: Trophy, href: "/arsha/app/tournaments", badge: 3 },
-            { label: "Teams",       icon: Users,  href: "/arsha/app/teams" },
+            { label: "Tournaments", icon: RiTrophyFill, href: "/arsha/app/tournaments", badge: 3, color: "#f59e0b" },
+            { label: "Teams",       icon: RiTeamFill,   href: "/arsha/app/teams" },
         ],
     },
 ]
 
-// ─── Animation variants ───────────────────────────────────────────────────────
-
-const sidebarVariants = {
-    open:      { width: 240 },
-    collapsed: { width: 60 },
+const SETTINGS: NavItem = {
+    label: "Settings",
+    icon: RiSettings4Fill,
+    href: "/arsha/app/settings"
 }
 
-const fadeOut = {
-    open:      { opacity: 1, x: 0,  transition: { duration: 0.15 } },
-    collapsed: { opacity: 0, x: -6, transition: { duration: 0.1  } },
+const W_OPEN      = 264
+const W_COLLAPSED = 72
+
+// ─── NavBtn Component (Unchanged from your original) ──────────────────────────
+
+function NavBtn({ item, isActive, isOpen, onClick }: {
+    item: NavItem
+    isActive: boolean
+    isOpen: boolean
+    onClick: () => void
+}) {
+    const Icon   = item.icon
+    const accent = item.color ?? "#8b5cf6"
+
+    return (
+        <li className="relative">
+            <button
+                onClick={onClick}
+                aria-current={isActive ? "page" : undefined}
+                className={cn(
+                    "group relative flex w-full items-center gap-3 rounded-[14px] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40",
+                    isOpen ? "h-11 px-2.5" : "h-11 w-11 mx-auto justify-center px-0",
+                    isActive ? "text-white" : "text-white/25 hover:text-white/60",
+                )}
+                style={{
+                    background: isActive
+                        ? `linear-gradient(135deg, ${accent}22 0%, ${accent}10 100%)`
+                        : undefined,
+                }}
+                onMouseEnter={e => {
+                    if (!isActive) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"
+                }}
+                onMouseLeave={e => {
+                    if (!isActive) (e.currentTarget as HTMLElement).style.background = ""
+                }}
+            >
+                {isActive && (
+                    <motion.span
+                        layoutId="activeBg"
+                        className="pointer-events-none absolute inset-0 rounded-[14px]"
+                        style={{ border: `1px solid ${accent}40` }}
+                        transition={{ type: "spring", stiffness: 400, damping: 34 }}
+                    />
+                )}
+
+                {isActive && (
+                    <motion.span
+                        layoutId="activeBar"
+                        className="absolute -left-3 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full"
+                        style={{ background: accent }}
+                        transition={{ type: "spring", stiffness: 400, damping: 34 }}
+                    />
+                )}
+
+                <span
+                    className="relative flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-xl transition-all duration-200"
+                    style={{
+                        background: isActive ? `${accent}28` : undefined,
+                        color: isActive ? accent : "currentColor",
+                    }}
+                >
+                    <Icon size={16} />
+                    {!isOpen && item.badge !== undefined && (
+                        <span
+                            className="absolute -right-1 -top-1 flex h-[15px] min-w-[15px] items-center justify-center rounded-full px-[3px] text-[8px] font-black leading-none text-white"
+                            style={{ background: accent }}
+                        >
+                            {item.badge}
+                        </span>
+                    )}
+                </span>
+
+                <AnimatePresence initial={false}>
+                    {isOpen && (
+                        <motion.span
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            transition={{ duration: 0.13 }}
+                            className="flex flex-1 items-center justify-between overflow-hidden"
+                        >
+                            <span className="truncate text-[13px] font-semibold tracking-[-0.02em]">
+                                {item.label}
+                            </span>
+                            {item.badge !== undefined && (
+                                <span
+                                    className="ml-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-[5px] text-[9.5px] font-black leading-none text-white"
+                                    style={{ background: accent }}
+                                >
+                                    {item.badge}
+                                </span>
+                            )}
+                        </motion.span>
+                    )}
+                </AnimatePresence>
+
+                {!isOpen && (
+                    <span className="pointer-events-none absolute left-[calc(100%+14px)] top-1/2 z-[100] -translate-y-1/2 whitespace-nowrap rounded-xl border border-white/8 bg-[#0f0f20]/95 px-3 py-1.5 text-[12px] font-semibold text-white/90 opacity-0 shadow-2xl backdrop-blur-sm transition-opacity duration-150 group-hover:opacity-100">
+                        {item.label}
+                        {item.badge !== undefined && (
+                            <span
+                                className="ml-1.5 rounded-full px-1.5 py-px text-[8.5px] font-black text-white"
+                                style={{ background: accent }}
+                            >
+                                {item.badge}
+                            </span>
+                        )}
+                    </span>
+                )}
+            </button>
+        </li>
+    )
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Main Sidebar Component ───────────────────────────────────────────────────
 
 export function ArshaAppSidebar() {
     const pathname = usePathname()
     const router   = useRouter()
     const [open, setOpen] = React.useState(true)
+    const [isMac, setIsMac] = React.useState(false)
 
-    // Ctrl/Cmd + B to toggle
+    // Detect OS for keyboard shortcut display
     React.useEffect(() => {
-        const handler = (e: KeyboardEvent) => {
+        setIsMac(navigator.platform.toUpperCase().indexOf('MAC') >= 0)
+    }, [])
+
+    // Keyboard shortcut handler
+    React.useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "b" && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault()
                 setOpen(o => !o)
             }
         }
-        window.addEventListener("keydown", handler)
-        return () => window.removeEventListener("keydown", handler)
+        window.addEventListener("keydown", handleKeyDown)
+        return () => window.removeEventListener("keydown", handleKeyDown)
     }, [])
 
     return (
-        <motion.aside
-            variants={sidebarVariants}
-            animate={open ? "open" : "collapsed"}
-            transition={{ type: "spring", stiffness: 280, damping: 28 }}
-            className="relative flex h-full flex-col overflow-hidden border-r"
-            style={{
-                background: "#0f0f18",
-                borderColor: "rgba(127,119,221,0.12)",
-            }}
-        >
-            {/* ── Toggle button ── */}
-            <button
-                onClick={() => setOpen(o => !o)}
-                aria-label="Toggle sidebar"
-                className="absolute right-0 top-[30px] z-20 flex h-5 w-5 translate-x-1/2 items-center justify-center rounded-full border"
+        <div className="relative flex h-full shrink-0">
+            {/* ─── Professional Integrated Edge Handle ─── */}
+            <div className="absolute -right-px top-8 bottom-8 z-40 flex items-center">
+                <motion.button
+                    onClick={() => setOpen(o => !o)}
+                    aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
+                    className="group relative flex h-12 w-5 items-center justify-center rounded-l-lg border border-r-0 border-white/[0.06] bg-[#0c0c1a] shadow-xl transition-all duration-200 hover:bg-[#111128] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40"
+                    whileHover={{ width: 6 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                >
+                    {/* Animated gradient edge on hover */}
+                    <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-violet-500/50 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+
+                    <motion.span
+                        animate={{ rotate: open ? 0 : 180 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                        className="text-white/20 transition-colors duration-200 group-hover:text-white/50"
+                    >
+                        <PiCaretDoubleLeftBold size={10} />
+                    </motion.span>
+                </motion.button>
+            </div>
+
+            {/* ─── Sidebar Container ─── */}
+            <motion.aside
+                animate={{ width: open ? W_OPEN : W_COLLAPSED }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className="relative flex h-full flex-col overflow-hidden"
                 style={{
-                    background: "#1a1a2e",
-                    borderColor: "rgba(127,119,221,0.3)",
-                    color: "#7F77DD",
+                    background: "#080815",
+                    borderRight: "1px solid rgba(255,255,255,0.06)",
                 }}
             >
-                <motion.span
-                    animate={{ rotate: open ? 0 : 180 }}
-                    transition={{ duration: 0.28 }}
-                    className="flex items-center justify-center"
+                {/* Noise texture overlay */}
+                <svg
+                    className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.015]"
+                    xmlns="http://www.w3.org/2000/svg"
                 >
-                    <ChevronLeft size={10} />
-                </motion.span>
-            </button>
+                    <filter id="noise">
+                        <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="4" stitchTiles="stitch"/>
+                        <feColorMatrix type="saturate" values="0"/>
+                    </filter>
+                    <rect width="100%" height="100%" filter="url(#noise)"/>
+                </svg>
 
-            {/* ── Header / logo ── */}
-            <div
-                className="flex h-[60px] min-h-[60px] items-center gap-2.5 overflow-hidden border-b px-3.5"
-                style={{ borderColor: "rgba(127,119,221,0.12)" }}
-            >
-                {/* Logo mark */}
+                {/* Ambient glows */}
                 <div
-                    className="flex h-[34px] w-[34px] min-w-[34px] items-center justify-center rounded-lg text-[13px] font-semibold text-white"
-                    style={{ background: "#7F77DD" }}
-                >
-                    AE
-                </div>
-
-                <AnimatePresence initial={false}>
-                    {open && (
-                        <motion.div
-                            variants={fadeOut}
-                            initial="collapsed"
-                            animate="open"
-                            exit="collapsed"
-                            className="overflow-hidden"
-                        >
-                            <p className="text-[14px] font-semibold leading-none text-white">Arsha</p>
-                            <p className="mt-0.5 text-[11px]" style={{ color: "rgba(127,119,221,0.7)" }}>
-                                Esports Platform
-                            </p>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </div>
-
-            {/* ── Nav ── */}
-            <div className="flex flex-1 flex-col gap-0 overflow-y-auto overflow-x-hidden py-2">
-                {NAV.map((section, si) => (
-                    <div key={section.label}>
-                        {si > 0 && (
-                            <div
-                                className="mx-3 my-1.5 h-px"
-                                style={{ background: "rgba(127,119,221,0.1)" }}
-                            />
-                        )}
-
-                        {/* Section label */}
-                        <AnimatePresence initial={false}>
-                            {open && (
-                                <motion.p
-                                    variants={fadeOut}
-                                    initial="collapsed"
-                                    animate="open"
-                                    exit="collapsed"
-                                    className="px-4 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-widest"
-                                    style={{ color: "rgba(127,119,221,0.45)" }}
-                                >
-                                    {section.label}
-                                </motion.p>
-                            )}
-                        </AnimatePresence>
-
-                        {/* Items */}
-                        <ul className="space-y-0.5 px-1.5">
-                            {section.items.map(item => {
-                                const Icon     = item.icon
-                                const isActive = pathname === item.href
-
-                                return (
-                                    <li key={item.href} className="relative">
-                                        <button
-                                            onClick={() => router.push(item.href)}
-                                            title={!open ? item.label : undefined}
-                                            className={cn(
-                                                "group relative flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-[13.5px] transition-colors",
-                                                isActive
-                                                    ? "text-white"
-                                                    : "text-white/45 hover:text-white/80"
-                                            )}
-                                            style={{
-                                                background: isActive
-                                                    ? "rgba(127,119,221,0.15)"
-                                                    : undefined,
-                                            }}
-                                            onMouseEnter={e => {
-                                                if (!isActive)
-                                                    (e.currentTarget as HTMLElement).style.background =
-                                                        "rgba(127,119,221,0.07)"
-                                            }}
-                                            onMouseLeave={e => {
-                                                if (!isActive)
-                                                    (e.currentTarget as HTMLElement).style.background = ""
-                                            }}
-                                        >
-                                            {/* Active bar */}
-                                            {isActive && (
-                                                <motion.span
-                                                    layoutId="activeBar"
-                                                    className="absolute -left-1.5 top-1/2 h-[18px] w-[3px] -translate-y-1/2 rounded-r"
-                                                    style={{ background: "#7F77DD" }}
-                                                />
-                                            )}
-
-                                            {/* Icon */}
-                                            <span
-                                                className="flex h-8 w-8 min-w-[32px] items-center justify-center rounded-lg transition-colors"
-                                                style={{
-                                                    background: isActive
-                                                        ? "rgba(127,119,221,0.25)"
-                                                        : undefined,
-                                                    color: isActive ? "#a49ef0" : "currentColor",
-                                                }}
-                                            >
-                        <Icon size={16} />
-                      </span>
-
-                                            {/* Label */}
-                                            <AnimatePresence initial={false}>
-                                                {open && (
-                                                    <motion.span
-                                                        variants={fadeOut}
-                                                        initial="collapsed"
-                                                        animate="open"
-                                                        exit="collapsed"
-                                                        className="flex flex-1 items-center justify-between overflow-hidden"
-                                                    >
-                                                        <span className="truncate">{item.label}</span>
-                                                        {item.badge !== undefined && (
-                                                            <span
-                                                                className="ml-2 rounded-full px-1.5 py-px text-[10px] font-semibold text-white"
-                                                                style={{ background: "#7F77DD" }}
-                                                            >
-                                {item.badge}
-                              </span>
-                                                        )}
-                                                    </motion.span>
-                                                )}
-                                            </AnimatePresence>
-
-                                            {/* Tooltip when collapsed */}
-                                            {!open && (
-                                                <span
-                                                    className="pointer-events-none absolute left-full ml-2.5 whitespace-nowrap rounded-md border px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100"
-                                                    style={{
-                                                        background: "#1a1a2e",
-                                                        borderColor: "rgba(127,119,221,0.3)",
-                                                    }}
-                                                >
-                          {item.label}
-                                                    {item.badge !== undefined && ` (${item.badge})`}
-                        </span>
-                                            )}
-                                        </button>
-                                    </li>
-                                )
-                            })}
-                        </ul>
-                    </div>
-                ))}
-
-                {/* Settings — at bottom of nav body */}
-                <div
-                    className="mx-3 my-1.5 h-px"
-                    style={{ background: "rgba(127,119,221,0.1)" }}
+                    className="pointer-events-none absolute left-1/2 top-0 h-[200px] w-[200px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-30"
+                    style={{ background: "radial-gradient(circle, #6d28d9 0%, transparent 65%)" }}
                 />
-                <ul className="px-1.5">
-                    <li className="relative">
-                        <button
-                            onClick={() => router.push("/arsha/app/settings")}
-                            title={!open ? "Settings" : undefined}
-                            className={cn(
-                                "group relative flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-[13.5px] transition-colors",
-                                pathname === "/arsha/app/settings"
-                                    ? "text-white"
-                                    : "text-white/45 hover:text-white/80"
-                            )}
+                <div
+                    className="pointer-events-none absolute bottom-0 left-0 h-[160px] w-[160px] -translate-x-1/3 translate-y-1/3 rounded-full opacity-20"
+                    style={{ background: "radial-gradient(circle, #4f46e5 0%, transparent 65%)" }}
+                />
+
+                {/* ─── Header ─── */}
+                <div
+                    className="relative flex h-[68px] shrink-0 items-center gap-3 overflow-hidden px-4"
+                    style={{ borderBottom: "1px solid rgba(255,255,255,0.055)" }}
+                >
+                    <div className="relative shrink-0">
+                        <div className="absolute inset-0 scale-150 rounded-xl bg-violet-600/40 blur-xl" />
+                        <div
+                            className="relative flex h-10 w-10 items-center justify-center rounded-xl text-[11px] font-black tracking-widest text-white"
                             style={{
-                                background:
-                                    pathname === "/arsha/app/settings"
-                                        ? "rgba(127,119,221,0.15)"
-                                        : undefined,
-                            }}
-                            onMouseEnter={e => {
-                                if (pathname !== "/arsha/app/settings")
-                                    (e.currentTarget as HTMLElement).style.background =
-                                        "rgba(127,119,221,0.07)"
-                            }}
-                            onMouseLeave={e => {
-                                if (pathname !== "/arsha/app/settings")
-                                    (e.currentTarget as HTMLElement).style.background = ""
+                                background: "linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)",
+                                boxShadow: "0 0 0 1px rgba(139,92,246,0.5), inset 0 1px 0 rgba(255,255,255,0.15)",
                             }}
                         >
-                            {pathname === "/arsha/app/settings" && (
-                                <motion.span
-                                    layoutId="activeBar"
-                                    className="absolute -left-1.5 top-1/2 h-[18px] w-[3px] -translate-y-1/2 rounded-r"
-                                    style={{ background: "#7F77DD" }}
-                                />
-                            )}
-                            <span
-                                className="flex h-8 w-8 min-w-[32px] items-center justify-center rounded-lg"
-                                style={{
-                                    background:
-                                        pathname === "/arsha/app/settings"
-                                            ? "rgba(127,119,221,0.25)"
-                                            : undefined,
-                                    color:
-                                        pathname === "/arsha/app/settings"
-                                            ? "#a49ef0"
-                                            : "currentColor",
-                                }}
-                            >
-                <Settings size={16} />
-              </span>
-                            <AnimatePresence initial={false}>
-                                {open && (
-                                    <motion.span
-                                        variants={fadeOut}
-                                        initial="collapsed"
-                                        animate="open"
-                                        exit="collapsed"
-                                        className="truncate"
-                                    >
-                                        Settings
-                                    </motion.span>
-                                )}
-                            </AnimatePresence>
-                            {!open && (
-                                <span
-                                    className="pointer-events-none absolute left-full ml-2.5 whitespace-nowrap rounded-md border px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100"
-                                    style={{
-                                        background: "#1a1a2e",
-                                        borderColor: "rgba(127,119,221,0.3)",
-                                    }}
-                                >
-                  Settings
-                </span>
-                            )}
-                        </button>
-                    </li>
-                </ul>
-            </div>
-
-            {/* ── Footer / user ── */}
-            <div
-                className="border-t p-2"
-                style={{ borderColor: "rgba(127,119,221,0.1)" }}
-            >
-                <button
-                    className="group flex w-full items-center gap-2.5 overflow-hidden rounded-lg p-2 transition-colors"
-                    style={{ color: "rgba(255,255,255,0.45)" }}
-                    onMouseEnter={e =>
-                        ((e.currentTarget as HTMLElement).style.background =
-                            "rgba(127,119,221,0.07)")
-                    }
-                    onMouseLeave={e =>
-                        ((e.currentTarget as HTMLElement).style.background = "")
-                    }
-                >
-                    {/* Avatar */}
-                    <div
-                        className="flex h-8 w-8 min-w-[32px] items-center justify-center rounded-full border-[1.5px] text-xs font-semibold text-white"
-                        style={{
-                            background: "linear-gradient(135deg, #7F77DD, #534AB7)",
-                            borderColor: "rgba(127,119,221,0.4)",
-                        }}
-                    >
-                        JD
+                            AE
+                        </div>
                     </div>
 
                     <AnimatePresence initial={false}>
                         {open && (
                             <motion.div
-                                variants={fadeOut}
-                                initial="collapsed"
-                                animate="open"
-                                exit="collapsed"
-                                className="flex flex-1 items-center justify-between overflow-hidden"
+                                initial={{ opacity: 0, x: -12 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -12 }}
+                                transition={{ duration: 0.16 }}
+                                className="overflow-hidden"
                             >
-                                <div className="overflow-hidden">
-                                    <p className="truncate text-[13px] font-medium text-white">
-                                        JDoe_Val
-                                    </p>
-                                    <p className="text-[11px]" style={{ color: "rgba(127,119,221,0.6)" }}>
-                                        #VALORANT · Pro
-                                    </p>
+                                <div className="flex items-baseline gap-[3px]">
+                                    <span className="text-[17px] font-black tracking-[-0.05em] text-white">
+                                        arsha
+                                    </span>
+                                    <span className="text-[17px] font-black text-violet-400">.</span>
+                                    <span
+                                        className="ml-1 rounded-md px-1.5 py-px text-[8.5px] font-black uppercase tracking-widest"
+                                        style={{
+                                            background: "rgba(139,92,246,0.2)",
+                                            color: "#a78bfa",
+                                            border: "1px solid rgba(139,92,246,0.3)",
+                                        }}
+                                    >
+                                        PRO
+                                    </span>
                                 </div>
-                                <Wifi size={13} className="ml-2 text-green-400 opacity-80" />
+                                <div className="mt-0.5 flex items-center gap-1">
+                                    <HiSparkles size={9} className="text-violet-400/70" />
+                                    <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-white/25">
+                                        Esports Platform
+                                    </span>
+                                </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
-                </button>
-            </div>
-        </motion.aside>
+                </div>
+
+                {/* ─── Navigation ─── */}
+                <nav className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <div className={cn("flex flex-col gap-0.5", open ? "px-3" : "px-[10px]")}>
+                        {NAV.map((section, si) => (
+                            <div key={section.label} className={cn(si > 0 && "mt-3")}>
+                                <AnimatePresence initial={false}>
+                                    {open && (
+                                        <motion.p
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            transition={{ duration: 0.1 }}
+                                            className="mb-1.5 px-3 text-[9px] font-black uppercase tracking-[0.2em] text-white/20"
+                                        >
+                                            {section.label}
+                                        </motion.p>
+                                    )}
+                                </AnimatePresence>
+                                {!open && si > 0 && (
+                                    <div className="mx-auto mb-3 h-px w-6 bg-white/8" />
+                                )}
+
+                                <ul className="space-y-0.5">
+                                    {section.items.map(item => (
+                                        <NavBtn
+                                            key={item.href}
+                                            item={item}
+                                            isActive={pathname === item.href}
+                                            isOpen={open}
+                                            onClick={() => router.push(item.href)}
+                                        />
+                                    ))}
+                                </ul>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="flex-1" />
+
+                    {/* Settings */}
+                    <div className={cn("mb-1 mt-3 h-px bg-white/6", open ? "mx-3" : "mx-[10px]")} />
+                    <div className={cn(open ? "px-3" : "px-[10px]")}>
+                        <NavBtn
+                            item={SETTINGS}
+                            isActive={pathname === SETTINGS.href}
+                            isOpen={open}
+                            onClick={() => router.push(SETTINGS.href)}
+                        />
+                    </div>
+                </nav>
+
+                {/* ─── Footer ─── */}
+                <div
+                    className="relative shrink-0 p-3"
+                    style={{ borderTop: "1px solid rgba(255,255,255,0.055)" }}
+                >
+                    <div
+                        className="pointer-events-none absolute inset-x-0 bottom-0 h-20 opacity-30"
+                        style={{ background: "linear-gradient(to top, #4c1d9520, transparent)" }}
+                    />
+
+                    {/* Keyboard shortcut hint */}
+                    {open && (
+                        <div className="mb-2 flex items-center justify-between px-1">
+                            <span className="text-[9px] font-medium uppercase tracking-wider text-white/15">
+                                Quick Actions
+                            </span>
+                            <kbd className="flex items-center gap-0.5 rounded-md border border-white/10 bg-white/[0.02] px-1.5 py-0.5 text-[9px] font-mono text-white/25">
+                                {isMac ? (
+                                    <>
+                                        <MdKeyboardCommandKey size={10} />
+                                        <span>B</span>
+                                    </>
+                                ) : (
+                                    <span>Ctrl+B</span>
+                                )}
+                            </kbd>
+                        </div>
+                    )}
+
+                    <button
+                        className={cn(
+                            "group relative flex w-full items-center gap-3 rounded-[14px] p-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40",
+                            !open && "justify-center",
+                        )}
+                        onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)")}
+                        onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = "")}
+                        aria-label="User menu"
+                    >
+                        <div className="relative shrink-0">
+                            <div
+                                className="flex h-9 w-9 items-center justify-center rounded-xl text-[10px] font-black text-white"
+                                style={{
+                                    background: "linear-gradient(135deg, #7c3aed 0%, #312e81 100%)",
+                                    boxShadow: "0 0 0 1.5px rgba(139,92,246,0.5), 0 0 16px rgba(124,58,237,0.3)",
+                                }}
+                            >
+                                JD
+                            </div>
+                            <span
+                                className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-[2px]"
+                                style={{
+                                    background: "#34d399",
+                                    borderColor: "#080815",
+                                    boxShadow: "0 0 6px #34d39980",
+                                }}
+                            />
+                        </div>
+
+                        <AnimatePresence initial={false}>
+                            {open && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -10 }}
+                                    transition={{ duration: 0.13 }}
+                                    className="flex flex-1 flex-col overflow-hidden"
+                                >
+                                    <span className="truncate text-[13px] font-bold tracking-[-0.02em] text-white/90">
+                                        JDoe_Val
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                        <RiFlashlightFill size={9} className="text-violet-400/70" />
+                                        <span className="text-[10px] font-semibold tracking-tight text-white/30">
+                                            VALORANT · Pro
+                                        </span>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </button>
+                </div>
+            </motion.aside>
+        </div>
     )
 }

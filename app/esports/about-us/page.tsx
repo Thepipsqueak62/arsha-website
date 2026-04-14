@@ -1,4 +1,4 @@
-﻿// app/about/page.tsx
+﻿// app/about/layout.tsx
 'use client';
 
 import {motion, useInView, useScroll, useTransform, Variants} from 'framer-motion';

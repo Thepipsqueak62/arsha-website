@@ -1,12 +1,12 @@
 ﻿import React from 'react';
 
-const ArshaApplication = () => {
+const DashboardMain = () => {
     return (
         <div className="flex items-center justify-center min-h-screen ">
-            asd
+            Welcome to your Dashboard
 
         </div>
     );
 };
 
-export default ArshaApplication;
+export default DashboardMain;

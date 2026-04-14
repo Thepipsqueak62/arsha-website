@@ -9,7 +9,7 @@ export function useRequireAuth() {
 
     useEffect(() => {
         if (!isPending && !session) {
-            router.replace("/arsha-app/sign-in");
+            router.replace("/dev-route");
         }
     }, [session, isPending, router]);
 

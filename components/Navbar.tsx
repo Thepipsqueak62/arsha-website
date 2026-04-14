@@ -511,8 +511,8 @@ const Navbar = () => {
     ];
 
     const authNav: NavigationItem[] = isAuthenticated ? [] : [
-        { path: ROUTE_PATHS.AUTH?.SIGN_IN || "/signin", label: "Sign in", icon: User },
-        { path: ROUTE_PATHS.AUTH?.SIGN_UP || "/signup", label: "Sign up", icon: UserCircle },
+        { path: ROUTE_PATHS.AUTH?.SIGN_IN, label: "Sign in", icon: User },
+        { path: ROUTE_PATHS.AUTH?.SIGN_UP, label: "Sign up", icon: UserCircle },
     ];
 
     const allNav = [...primaryNav, ...secondaryNav, ...authNav];
