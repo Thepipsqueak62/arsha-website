@@ -8,7 +8,7 @@ export default function SignOutButton() {
 
     async function handleSignOut() {
         await authClient.signOut();
-        router.push("/arsha-app/sign-in");
+        router.push("/dev-route");
     }
 
     return (

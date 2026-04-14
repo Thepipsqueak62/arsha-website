@@ -1,4 +1,4 @@
-﻿// app/dashboard/page.tsx
+﻿// app/dashboard/layout.tsx
 "use client";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import SignOutButton from "@/components/SignOutBtn";

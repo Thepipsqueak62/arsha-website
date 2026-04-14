@@ -19,8 +19,8 @@ export const ROUTE_PATHS = {
         SETTINGS: "/arsha-app/settings",
     },
     AUTH: {
-        SIGN_IN: "/arsha-app/sign-in",
-        SIGN_UP: "/arsha-app/sign-up",
+        SIGN_IN: "/arsha/sign-in",
+        SIGN_UP: "/arsha/sign-up",
         FORGOT_PASSWORD: "/forgot-password",
         RESET_PASSWORD: "/reset-password",
     },
