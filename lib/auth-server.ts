@@ -3,21 +3,25 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+// ✅ Get the backend URL from environment
+const BACKEND_URL = process.env.BETTER_AUTH_URL || "http://localhost:3001";
+
 export const getSession = cache(async () => {
     try {
         const cookieStore = await cookies();
 
-        // ✅ FIX: Provide fallback URL
-        const authUrl = process.env.BETTER_AUTH_URL || "http://localhost:3001";
+        // ✅ Critical: Forward all cookies to the backend
+        const cookieString = cookieStore.toString();
 
-        const res = await fetch(`${authUrl}/api/auth/get-session`, {
+        const res = await fetch(`${BACKEND_URL}/api/auth/get-session`, {
             headers: {
-                cookie: cookieStore.toString(),
+                'Cookie': cookieString,  // ✅ Case-sensitive header
                 'Content-Type': 'application/json',
             },
-            next: { revalidate: 60 },
-            // ✅ Add error handling for network issues
-            signal: AbortSignal.timeout(5000), // 5 second timeout
+            // ✅ Don't cache session data too aggressively
+            cache: 'no-store',
+            // ✅ Longer timeout for production
+            signal: AbortSignal.timeout(10000),
         });
 
         if (!res.ok) {
@@ -32,10 +36,25 @@ export const getSession = cache(async () => {
     }
 });
 
-export async function requireAuth() {
+export async function requireAuth(options?: {
+    requireEmailVerified?: boolean;
+    redirectTo?: string;
+}) {
     const session = await getSession();
+
     if (!session?.user) {
-        redirect("/arsha/sign-in");
+        redirect(options?.redirectTo || "/arsha/sign-in");
     }
+
+    if (options?.requireEmailVerified && !session.user.emailVerified) {
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
+            process.env.NEXTJS_URL ||
+            "http://localhost:3000";
+
+        const verifyUrl = new URL("/arsha/verify-email", baseUrl);
+        verifyUrl.searchParams.set("email", session.user.email);
+        redirect(verifyUrl.toString());
+    }
+
     return session;
 }

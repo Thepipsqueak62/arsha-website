@@ -3,13 +3,15 @@ import { createAuthClient } from "better-auth/react";
 import { emailOTPClient } from "better-auth/client/plugins";
 
 export const authClient = createAuthClient({
+    // ✅ This should be your Render backend URL in production
     baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3001",
     plugins: [emailOTPClient()],
+
+    // ✅ Add these for cross-domain cookie support
+    credentials: 'include',  // Required for cookies
 });
 
-// ✅ Add client-side session utilities
 export const authUtils = {
-    // Check if user is authenticated on client
     async isAuthenticated() {
         try {
             const { data } = await authClient.getSession();
@@ -19,7 +21,6 @@ export const authUtils = {
         }
     },
 
-    // Get session with validation
     async getValidSession() {
         try {
             const { data } = await authClient.getSession();
@@ -41,23 +42,26 @@ export const authUtils = {
         }
     },
 
-    // Refresh session if needed
     async ensureValidSession() {
         const session = await this.getValidSession();
         if (!session) {
-            window.location.href = "/arsha/sign-in";
+            // ✅ Use window.location for client-side redirect
+            if (typeof window !== 'undefined') {
+                window.location.href = "/arsha/sign-in";
+            }
             return null;
         }
         return session;
     },
 
-    // Sign out with cleanup
     async signOut() {
         try {
             await authClient.signOut();
             // Clear any local storage/cookies
-            localStorage.clear();
-            sessionStorage.clear();
+            if (typeof window !== 'undefined') {
+                localStorage.clear();
+                sessionStorage.clear();
+            }
         } catch (error) {
             console.error('Sign out error:', error);
         }

@@ -2,8 +2,13 @@
 import SignOutButton from "@/components/SignOutBtn";
 import { requireAuth } from "@/lib/auth-server";
 
+
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardPage() {
-    const session = await requireAuth();
+    const session = await requireAuth({
+        requireEmailVerified: true,
+    });
 
     return (
         <main className="max-w-2xl mx-auto px-6 py-16">
