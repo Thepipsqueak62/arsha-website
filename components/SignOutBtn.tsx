@@ -8,15 +8,23 @@ export default function SignOutButton() {
 
     async function handleSignOut() {
         try {
-            await authClient.signOut();
-
-            // force refresh session state
-            router.refresh();
-
-            // then redirect
-            router.push("/arsha/sign-in");
+            await authClient.signOut({
+                fetchOptions: {
+                    onSuccess: () => {
+                        // Only runs if signout succeeded on the server
+                        window.dispatchEvent(new Event("auth:signout"));
+                        router.push("/");
+                    },
+                    onError: (ctx) => {
+                        console.error("Sign out failed:", ctx.error);
+                    }
+                }
+            });
         } catch (err) {
-            console.error("Sign out failed:", err);
+            console.error("Sign out error:", err);
+            // Still clear local state even if server call fails
+            window.dispatchEvent(new Event("auth:signout"));
+            router.push("/");
         }
     }
 

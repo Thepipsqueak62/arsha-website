@@ -16,6 +16,9 @@ import {
 import { PiCaretDoubleLeftBold } from "react-icons/pi"
 import { HiSparkles } from "react-icons/hi2"
 import { MdKeyboardCommandKey } from "react-icons/md"
+import { LogOut } from "lucide-react"
+import { authClient } from "@/lib/auth-client"
+import { useState } from "react"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -38,15 +41,17 @@ const NAV: NavSection[] = [
     {
         label: "Main",
         items: [
-            { label: "Feed",    icon: RiHome5Fill,  href: "/arsha/app/feed",    badge: 12 },
-            { label: "Profile", icon: RiUserFill,   href: "/arsha/app/profile" },
+            { label: "Profile",  icon: RiUserFill,  href: "/arsha/app/profile",  badge: 22 },
+            { label: "Feed",     icon: RiHome5Fill, href: "/arsha/app/feed",     badge: 12 },
+            { label: "Settings", icon: RiHome5Fill, href: "/arsha/app/settings", badge: 12 },
         ],
     },
     {
         label: "Compete",
         items: [
-            { label: "Tournaments", icon: RiTrophyFill, href: "/arsha/app/tournaments", badge: 3, color: "#f59e0b" },
-            { label: "Teams",       icon: RiTeamFill,   href: "/arsha/app/teams" },
+            { label: "Events",      icon: RiHome5Fill,  href: "/arsha/app/esports/events",      badge: 12 },
+            { label: "Tournaments", icon: RiTrophyFill, href: "/arsha/app/esports/tournaments", badge: 3, color: "#f59e0b" },
+            { label: "Teams",       icon: RiTeamFill,   href: "/arsha/app/esports/teams" },
         ],
     },
 ]
@@ -54,13 +59,13 @@ const NAV: NavSection[] = [
 const SETTINGS: NavItem = {
     label: "Settings",
     icon: RiSettings4Fill,
-    href: "/arsha/app/settings"
+    href: "/arsha/app/settings",
 }
 
 const W_OPEN      = 264
 const W_COLLAPSED = 72
 
-// ─── NavBtn Component (Unchanged from your original) ──────────────────────────
+// ─── NavBtn ───────────────────────────────────────────────────────────────────
 
 function NavBtn({ item, isActive, isOpen, onClick }: {
     item: NavItem
@@ -101,7 +106,6 @@ function NavBtn({ item, isActive, isOpen, onClick }: {
                         transition={{ type: "spring", stiffness: 400, damping: 34 }}
                     />
                 )}
-
                 {isActive && (
                     <motion.span
                         layoutId="activeBar"
@@ -171,20 +175,60 @@ function NavBtn({ item, isActive, isOpen, onClick }: {
     )
 }
 
-// ─── Main Sidebar Component ───────────────────────────────────────────────────
+// ─── Sidebar ──────────────────────────────────────────────────────────────────
 
 export function ArshaAppSidebar() {
     const pathname = usePathname()
     const router   = useRouter()
-    const [open, setOpen] = React.useState(true)
-    const [isMac, setIsMac] = React.useState(false)
 
-    // Detect OS for keyboard shortcut display
+    const [open,    setOpen]    = React.useState(true)
+    const [isMac,   setIsMac]   = React.useState(false)
+
+    // ── User state ──
+    const [username, setUsername] = useState<string | null>(null)
+    const [email,    setEmail]    = useState<string | null>(null)
+    const [avatar,   setAvatar]   = useState<string | null>(null)
+    const [loading,  setLoading]  = useState(true)
+
+    const initials = username?.charAt(0).toUpperCase() ?? "?"
+
+    // ── Fetch session ──
+    const getUserData = async () => {
+        try {
+            const { data } = await authClient.getSession()
+            if (data?.user) {
+                setUsername(data.user.name || data.user.email || "User")
+                setEmail(data.user.email)
+                setAvatar(data.user.image ?? null)
+            } else {
+                setUsername(null)
+                setEmail(null)
+                setAvatar(null)
+            }
+        } catch (err) {
+            console.error(err)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    // ── Sign out ──
+    const handleLogout = async () => {
+        await authClient.signOut()
+        // Notify the public Navbar on the same tab so it clears instantly
+        window.dispatchEvent(new Event("auth:signout"))
+        router.push("/")
+    }
+
+    // ── Effects ──
     React.useEffect(() => {
-        setIsMac(navigator.platform.toUpperCase().indexOf('MAC') >= 0)
+        getUserData()
     }, [])
 
-    // Keyboard shortcut handler
+    React.useEffect(() => {
+        setIsMac(navigator.platform.toUpperCase().indexOf("MAC") >= 0)
+    }, [])
+
     React.useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "b" && (e.metaKey || e.ctrlKey)) {
@@ -198,7 +242,7 @@ export function ArshaAppSidebar() {
 
     return (
         <div className="relative flex h-full shrink-0">
-            {/* ─── Professional Integrated Edge Handle ─── */}
+            {/* ─── Edge Handle ─── */}
             <div className="absolute -right-px top-8 bottom-8 z-40 flex items-center">
                 <motion.button
                     onClick={() => setOpen(o => !o)}
@@ -207,9 +251,7 @@ export function ArshaAppSidebar() {
                     whileHover={{ width: 6 }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 >
-                    {/* Animated gradient edge on hover */}
                     <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-violet-500/50 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-
                     <motion.span
                         animate={{ rotate: open ? 0 : 180 }}
                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
@@ -230,11 +272,8 @@ export function ArshaAppSidebar() {
                     borderRight: "1px solid rgba(255,255,255,0.06)",
                 }}
             >
-                {/* Noise texture overlay */}
-                <svg
-                    className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.015]"
-                    xmlns="http://www.w3.org/2000/svg"
-                >
+                {/* Noise texture */}
+                <svg className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.015]" xmlns="http://www.w3.org/2000/svg">
                     <filter id="noise">
                         <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="4" stitchTiles="stitch"/>
                         <feColorMatrix type="saturate" values="0"/>
@@ -243,14 +282,10 @@ export function ArshaAppSidebar() {
                 </svg>
 
                 {/* Ambient glows */}
-                <div
-                    className="pointer-events-none absolute left-1/2 top-0 h-[200px] w-[200px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-30"
-                    style={{ background: "radial-gradient(circle, #6d28d9 0%, transparent 65%)" }}
-                />
-                <div
-                    className="pointer-events-none absolute bottom-0 left-0 h-[160px] w-[160px] -translate-x-1/3 translate-y-1/3 rounded-full opacity-20"
-                    style={{ background: "radial-gradient(circle, #4f46e5 0%, transparent 65%)" }}
-                />
+                <div className="pointer-events-none absolute left-1/2 top-0 h-[200px] w-[200px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-30"
+                     style={{ background: "radial-gradient(circle, #6d28d9 0%, transparent 65%)" }} />
+                <div className="pointer-events-none absolute bottom-0 left-0 h-[160px] w-[160px] -translate-x-1/3 translate-y-1/3 rounded-full opacity-20"
+                     style={{ background: "radial-gradient(circle, #4f46e5 0%, transparent 65%)" }} />
 
                 {/* ─── Header ─── */}
                 <div
@@ -280,9 +315,7 @@ export function ArshaAppSidebar() {
                                 className="overflow-hidden"
                             >
                                 <div className="flex items-baseline gap-[3px]">
-                                    <span className="text-[17px] font-black tracking-[-0.05em] text-white">
-                                        arsha
-                                    </span>
+                                    <span className="text-[17px] font-black tracking-[-0.05em] text-white">arsha</span>
                                     <span className="text-[17px] font-black text-violet-400">.</span>
                                     <span
                                         className="ml-1 rounded-md px-1.5 py-px text-[8.5px] font-black uppercase tracking-widest"
@@ -324,10 +357,7 @@ export function ArshaAppSidebar() {
                                         </motion.p>
                                     )}
                                 </AnimatePresence>
-                                {!open && si > 0 && (
-                                    <div className="mx-auto mb-3 h-px w-6 bg-white/8" />
-                                )}
-
+                                {!open && si > 0 && <div className="mx-auto mb-3 h-px w-6 bg-white/8" />}
                                 <ul className="space-y-0.5">
                                     {section.items.map(item => (
                                         <NavBtn
@@ -375,10 +405,7 @@ export function ArshaAppSidebar() {
                             </span>
                             <kbd className="flex items-center gap-0.5 rounded-md border border-white/10 bg-white/[0.02] px-1.5 py-0.5 text-[9px] font-mono text-white/25">
                                 {isMac ? (
-                                    <>
-                                        <MdKeyboardCommandKey size={10} />
-                                        <span>B</span>
-                                    </>
+                                    <><MdKeyboardCommandKey size={10} /><span>B</span></>
                                 ) : (
                                     <span>Ctrl+B</span>
                                 )}
@@ -386,25 +413,33 @@ export function ArshaAppSidebar() {
                         </div>
                     )}
 
-                    <button
+                    {/* User row */}
+                    <div
                         className={cn(
-                            "group relative flex w-full items-center gap-3 rounded-[14px] p-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40",
+                            "group relative flex w-full items-center gap-3 rounded-[14px] p-2 transition-all duration-200",
                             !open && "justify-center",
                         )}
                         onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)")}
                         onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = "")}
-                        aria-label="User menu"
                     >
+                        {/* Avatar */}
                         <div className="relative shrink-0">
                             <div
-                                className="flex h-9 w-9 items-center justify-center rounded-xl text-[10px] font-black text-white"
+                                className="flex h-9 w-9 items-center justify-center rounded-xl text-[10px] font-black text-white overflow-hidden"
                                 style={{
                                     background: "linear-gradient(135deg, #7c3aed 0%, #312e81 100%)",
                                     boxShadow: "0 0 0 1.5px rgba(139,92,246,0.5), 0 0 16px rgba(124,58,237,0.3)",
                                 }}
                             >
-                                JD
+                                {loading ? (
+                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                                ) : avatar ? (
+                                    <img src={avatar} alt={username ?? ""} className="h-9 w-9 object-cover" />
+                                ) : (
+                                    initials
+                                )}
                             </div>
+                            {/* Online dot */}
                             <span
                                 className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-[2px]"
                                 style={{
@@ -415,6 +450,7 @@ export function ArshaAppSidebar() {
                             />
                         </div>
 
+                        {/* Name + email */}
                         <AnimatePresence initial={false}>
                             {open && (
                                 <motion.div
@@ -424,19 +460,58 @@ export function ArshaAppSidebar() {
                                     transition={{ duration: 0.13 }}
                                     className="flex flex-1 flex-col overflow-hidden"
                                 >
-                                    <span className="truncate text-[13px] font-bold tracking-[-0.02em] text-white/90">
-                                        JDoe_Val
-                                    </span>
-                                    <div className="flex items-center gap-1">
-                                        <RiFlashlightFill size={9} className="text-violet-400/70" />
-                                        <span className="text-[10px] font-semibold tracking-tight text-white/30">
-                                            VALORANT · Pro
-                                        </span>
-                                    </div>
+                                    {loading ? (
+                                        <>
+                                            <div className="h-3 w-24 rounded bg-white/10 animate-pulse mb-1" />
+                                            <div className="h-2.5 w-32 rounded bg-white/6 animate-pulse" />
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className="truncate text-[13px] font-bold tracking-[-0.02em] text-white/90">
+                                                {username ?? "Unknown"}
+                                            </span>
+                                            <div className="flex items-center gap-1">
+                                                <RiFlashlightFill size={9} className="text-violet-400/70" />
+                                                <span className="truncate text-[10px] font-semibold tracking-tight text-white/30">
+                                                    {email ?? ""}
+                                                </span>
+                                            </div>
+                                        </>
+                                    )}
                                 </motion.div>
                             )}
                         </AnimatePresence>
-                    </button>
+
+                        {/* Sign out button — only visible when sidebar is open */}
+                        <AnimatePresence initial={false}>
+                            {open && (
+                                <motion.button
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.13 }}
+                                    onClick={handleLogout}
+                                    aria-label="Sign out"
+                                    className="ml-auto shrink-0 flex h-7 w-7 items-center justify-center rounded-lg text-white/20 transition-colors hover:bg-red-500/15 hover:text-red-400"
+                                >
+                                    <LogOut size={13} />
+                                </motion.button>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* Sign out row when collapsed */}
+                    {!open && (
+                        <div className="mt-1 px-[10px]">
+                            <button
+                                onClick={handleLogout}
+                                aria-label="Sign out"
+                                className="group flex h-11 w-11 mx-auto items-center justify-center rounded-[14px] text-white/20 transition-colors hover:bg-red-500/15 hover:text-red-400"
+                            >
+                                <LogOut size={15} />
+                            </button>
+                        </div>
+                    )}
                 </div>
             </motion.aside>
         </div>

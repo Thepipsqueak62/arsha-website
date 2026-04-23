@@ -76,7 +76,7 @@ const ContactUs = () => {
     const contactInfo = [
         {
             icon: FaMapMarkerAlt,
-            title: "Esports Arena",
+            title: "esports Arena",
             details: ["123 Championship Blvd", "Los Angeles, CA 90001", "United States"],
             description: "Visit our state-of-the-art gaming facility"
         },
@@ -381,7 +381,7 @@ const ContactUs = () => {
                 </motion.div>
             </section>
 
-            {/* Pro Teams Section */}
+            {/* Pro teams Section */}
             <section className="py-20 bg-muted/30">
                 <motion.div
                     initial="initial"

@@ -101,9 +101,9 @@ export default function Footer() {
             ]
         },
         esports: {
-            title: "Esports",
+            title: "esports",
             links: [
-                { name: "Teams", href: "/teams" },
+                { name: "teams", href: "/teams" },
                 { name: "Schedule", href: "/schedule" },
                 { name: "Results", href: "/results" },
                 { name: "Academy", href: "/academy" },
@@ -115,7 +115,7 @@ export default function Footer() {
             links: [
                 { name: "Blog", href: "/blog" },
                 { name: "News", href: "/news" },
-                { name: "Guides", href: "/guides" },
+                { name: "guides", href: "/guides" },
                 { name: "Shop", href: "/shop" },
                 { name: "Support", href: "/support" },
             ]

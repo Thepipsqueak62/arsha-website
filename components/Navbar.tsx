@@ -12,6 +12,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { ROUTE_PATHS } from "@/lib/routes";
+import { authClient } from "@/lib/auth-client";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -60,7 +61,6 @@ const SearchOverlay = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 
     useEffect(() => {
         if (isOpen) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setQuery("");
             setResults([]);
             setTimeout(() => inputRef.current?.focus(), 80);
@@ -186,7 +186,6 @@ const SearchOverlay = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
                             })}
                         </ul>
                     ) : (
-                        /* Empty state — recent + trending */
                         <div className="p-4 space-y-5">
                             <div>
                                 <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
@@ -257,45 +256,69 @@ const SearchOverlay = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 const useAuth = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [username,        setUsername]        = useState<string | null>(null);
+    const [loading,         setLoading]         = useState(true);
     const router = useRouter();
 
-    useEffect(() => {
-        const check = () => {
-            if (typeof window === "undefined") return;
-            const token          = localStorage.getItem("token");
-            const storedUsername = localStorage.getItem("username");
-            if (token) {
+    const checkSession = async () => {
+        try {
+            const { data } = await authClient.getSession();
+            if (data?.user) {
                 setIsAuthenticated(true);
-                if (storedUsername) {
-                    setUsername(storedUsername);
-                } else {
-                    try {
-                        const payload = JSON.parse(atob(token.split(".")[1]));
-                        if (payload.username) {
-                            setUsername(payload.username);
-                            localStorage.setItem("username", payload.username);
-                        }
-                    } catch { /* ignore decode errors */ }
-                }
+                setUsername(data.user.name || data.user.email || "User");
             } else {
                 setIsAuthenticated(false);
                 setUsername(null);
             }
+        } catch {
+            setIsAuthenticated(false);
+            setUsername(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        checkSession();
+
+        // ── Cross-tab signout (storage event only fires in OTHER tabs) ──
+        const onStorage = (e: StorageEvent) => {
+            if (e.key === "better-auth.message") {
+                try {
+                    const msg = JSON.parse(e.newValue ?? "{}");
+                    if (msg?.data?.trigger === "signout") {
+                        setIsAuthenticated(false);
+                        setUsername(null);
+                    } else if (msg?.data?.trigger === "signin") {
+                        checkSession();
+                    }
+                } catch { /* ignore */ }
+            }
         };
-        check();
-        window.addEventListener("storage", check);
-        return () => window.removeEventListener("storage", check);
+
+        // ── Same-tab signout (dispatched by ArshaAppSidebar) ──
+        const onSignout = () => {
+            setIsAuthenticated(false);
+            setUsername(null);
+        };
+
+        window.addEventListener("storage",      onStorage);
+        window.addEventListener("auth:signout", onSignout);
+        return () => {
+            window.removeEventListener("storage",      onStorage);
+            window.removeEventListener("auth:signout", onSignout);
+        };
     }, []);
 
-    const logout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("username");
+    const logout = async () => {
+        await authClient.signOut();
         setIsAuthenticated(false);
         setUsername(null);
+        // Also dispatch so any other listeners on this tab update
+        window.dispatchEvent(new Event("auth:signout"));
         router.push(ROUTE_PATHS.PUBLIC.MAINPAGE);
     };
 
-    return { isAuthenticated, username, logout };
+    return { isAuthenticated, username, logout, loading };
 };
 
 // ─── NavLink ──────────────────────────────────────────────────────────────────
@@ -397,7 +420,7 @@ const UserDropdown = ({ username, logout }: { username: string; logout: () => vo
                     >
                         {/* Account header */}
                         <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 mb-1">
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-primary/80 to-primary text-[12px] font-semibold text-primary-foreground">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/80 to-primary text-[12px] font-semibold text-primary-foreground">
                                 {initials}
                             </div>
                             <div className="min-w-0">
@@ -443,9 +466,9 @@ const Navbar = () => {
     const [scrolled,    setScrolled]    = useState(false);
     const [searchOpen,  setSearchOpen]  = useState(false);
 
-    const pathname                              = usePathname();
-    const { isAuthenticated, username, logout } = useAuth();
-    const navbarRef                             = useRef<HTMLDivElement>(null);
+    const pathname                                       = usePathname();
+    const { isAuthenticated, username, logout, loading } = useAuth();
+    const navbarRef                                      = useRef<HTMLDivElement>(null);
 
     // Scroll shadow
     useEffect(() => {
@@ -461,7 +484,6 @@ const Navbar = () => {
     }, []);
 
     // Close mobile menu on route change
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => { setMobileOpen(false); }, [pathname]);
 
     // Body scroll lock
@@ -499,23 +521,15 @@ const Navbar = () => {
         return () => window.removeEventListener("keydown", onKey);
     }, [searchOpen, mobileOpen]);
 
-    // Navigation config
     const primaryNav: NavigationItem[] = [
-        { path: ROUTE_PATHS.PUBLIC.MAINPAGE,           label: "Home",     icon: Home },
-        { path: ROUTE_PATHS.PUBLIC?.ABOUT,             label: "About",    icon: Info },
-        { path: ROUTE_PATHS.PUBLIC?.CONTACT,           label: "Contact",  icon: Contact },
+        { path: ROUTE_PATHS.PUBLIC.MAINPAGE,  label: "Home",    icon: Home },
+        { path: ROUTE_PATHS.PUBLIC?.ABOUT,    label: "About",   icon: Info },
+        { path: ROUTE_PATHS.PUBLIC?.CONTACT,  label: "Contact", icon: Contact },
     ];
 
     const secondaryNav: NavigationItem[] = [
         { path: ROUTE_PATHS.PUBLIC?.PRIVACY || "/privacy", label: "Privacy", icon: HatGlasses },
     ];
-
-    const authNav: NavigationItem[] = isAuthenticated ? [] : [
-        { path: ROUTE_PATHS.AUTH?.SIGN_IN, label: "Sign in", icon: User },
-        { path: ROUTE_PATHS.AUTH?.SIGN_UP, label: "Sign up", icon: UserCircle },
-    ];
-
-    const allNav = [...primaryNav, ...secondaryNav, ...authNav];
 
     return (
         <>
@@ -557,7 +571,7 @@ const Navbar = () => {
                         {/* Right controls */}
                         <div className="ml-auto flex items-center gap-2">
 
-                            {/* Search button */}
+                            {/* Search */}
                             <button
                                 onClick={() => setSearchOpen(true)}
                                 className="hidden md:flex items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-1.5 text-[13px] text-muted-foreground transition-colors hover:border-border hover:bg-muted/60 hover:text-foreground"
@@ -569,24 +583,26 @@ const Navbar = () => {
                                 </kbd>
                             </button>
 
-                            {/* Auth state */}
-                            {isAuthenticated ? (
-                                <UserDropdown username={username ?? "User"} logout={logout} />
-                            ) : (
-                                <div className="hidden lg:flex items-center gap-1.5">
-                                    <Link
-                                        href={ROUTE_PATHS.AUTH?.SIGN_IN || "/signin"}
-                                        className="rounded-lg px-3.5 py-2 text-[13.5px] font-medium text-foreground/70 transition-colors hover:bg-muted/60 hover:text-foreground"
-                                    >
-                                        Sign in
-                                    </Link>
-                                    <Link
-                                        href={ROUTE_PATHS.AUTH?.SIGN_UP || "/signup"}
-                                        className="rounded-lg bg-primary px-3.5 py-2 text-[13.5px] font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                                    >
-                                        Get started
-                                    </Link>
-                                </div>
+                            {/* Auth state — hidden while session is loading to prevent flash */}
+                            {!loading && (
+                                isAuthenticated ? (
+                                    <UserDropdown username={username ?? "User"} logout={logout} />
+                                ) : (
+                                    <div className="hidden lg:flex items-center gap-1.5">
+                                        <Link
+                                            href={ROUTE_PATHS.AUTH?.SIGN_IN || "/signin"}
+                                            className="rounded-lg px-3.5 py-2 text-[13.5px] font-medium text-foreground/70 transition-colors hover:bg-muted/60 hover:text-foreground"
+                                        >
+                                            Sign in
+                                        </Link>
+                                        <Link
+                                            href={ROUTE_PATHS.AUTH?.SIGN_UP || "/signup"}
+                                            className="rounded-lg bg-primary px-3.5 py-2 text-[13.5px] font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                                        >
+                                            Get started
+                                        </Link>
+                                    </div>
+                                )
                             )}
 
                             {/* Hamburger */}
@@ -615,7 +631,6 @@ const Navbar = () => {
                     <AnimatePresence>
                         {mobileOpen && (
                             <>
-                                {/* Backdrop */}
                                 <motion.div
                                     key="backdrop"
                                     initial={{ opacity: 0 }}
@@ -626,7 +641,6 @@ const Navbar = () => {
                                     onClick={() => setMobileOpen(false)}
                                 />
 
-                                {/* Panel */}
                                 <motion.div
                                     key="panel"
                                     initial={{ opacity: 0, y: -8 }}
@@ -672,44 +686,46 @@ const Navbar = () => {
                                     <div className="h-px bg-border/40 mb-4" />
 
                                     {/* Auth section */}
-                                    {isAuthenticated ? (
-                                        <div>
-                                            <p className="mb-1.5 px-3 text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground/50">
-                                                Your account
-                                            </p>
-                                            <div className="space-y-0.5">
-                                                {[
-                                                    { path: ROUTE_PATHS.ARSHAAPP.DASHBOARD, label: "Dashboard", icon: LayoutDashboard },
-                                                    { path: ROUTE_PATHS.ARSHAAPP?.PROFILE || "/profile", label: "Profile", icon: UserCircle },
-                                                ].map((item) => (
-                                                    <NavLink key={item.path} item={item} currentPath={pathname} onClick={() => setMobileOpen(false)} mobile />
-                                                ))}
-                                                <button
-                                                    onClick={() => { logout(); setMobileOpen(false); }}
-                                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/8"
-                                                >
-                                                    <LogOut size={16} className="shrink-0" />
-                                                    Sign out
-                                                </button>
+                                    {!loading && (
+                                        isAuthenticated ? (
+                                            <div>
+                                                <p className="mb-1.5 px-3 text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+                                                    Your account
+                                                </p>
+                                                <div className="space-y-0.5">
+                                                    {[
+                                                        { path: ROUTE_PATHS.ARSHAAPP.DASHBOARD,          label: "Dashboard", icon: LayoutDashboard },
+                                                        { path: ROUTE_PATHS.ARSHAAPP?.PROFILE || "/profile", label: "Profile",   icon: UserCircle },
+                                                    ].map((item) => (
+                                                        <NavLink key={item.path} item={item} currentPath={pathname} onClick={() => setMobileOpen(false)} mobile />
+                                                    ))}
+                                                    <button
+                                                        onClick={() => { logout(); setMobileOpen(false); }}
+                                                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/8"
+                                                    >
+                                                        <LogOut size={16} className="shrink-0" />
+                                                        Sign out
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ) : (
-                                        <div className="flex gap-2.5">
-                                            <Link
-                                                href={ROUTE_PATHS.AUTH?.SIGN_IN || "/signin"}
-                                                onClick={() => setMobileOpen(false)}
-                                                className="flex-1 rounded-xl border border-border/60 py-2.5 text-center text-[13.5px] font-medium transition-colors hover:bg-muted/50"
-                                            >
-                                                Sign in
-                                            </Link>
-                                            <Link
-                                                href={ROUTE_PATHS.AUTH?.SIGN_UP || "/signup"}
-                                                onClick={() => setMobileOpen(false)}
-                                                className="flex-1 rounded-xl bg-primary py-2.5 text-center text-[13.5px] font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                                            >
-                                                Get started
-                                            </Link>
-                                        </div>
+                                        ) : (
+                                            <div className="flex gap-2.5">
+                                                <Link
+                                                    href={ROUTE_PATHS.AUTH?.SIGN_IN || "/signin"}
+                                                    onClick={() => setMobileOpen(false)}
+                                                    className="flex-1 rounded-xl border border-border/60 py-2.5 text-center text-[13.5px] font-medium transition-colors hover:bg-muted/50"
+                                                >
+                                                    Sign in
+                                                </Link>
+                                                <Link
+                                                    href={ROUTE_PATHS.AUTH?.SIGN_UP || "/signup"}
+                                                    onClick={() => setMobileOpen(false)}
+                                                    className="flex-1 rounded-xl bg-primary py-2.5 text-center text-[13.5px] font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                                                >
+                                                    Get started
+                                                </Link>
+                                            </div>
+                                        )
                                     )}
 
                                     {/* Footer */}
@@ -717,8 +733,8 @@ const Navbar = () => {
                                         <Link href={ROUTE_PATHS.PUBLIC.HELPPAGE} className="flex items-center gap-1 text-[11.5px] text-muted-foreground hover:text-foreground">
                                             <HelpCircle size={12} /> Help
                                         </Link>
-                                        <Link href={ROUTE_PATHS.PUBLIC.PRIVACY}   className="text-[11.5px] text-muted-foreground hover:text-foreground">Terms</Link>
-                                        <Link href={ROUTE_PATHS.PUBLIC.PRIVACY}  className="text-[11.5px] text-muted-foreground hover:text-foreground">Cookies</Link>
+                                        <Link href={ROUTE_PATHS.PUBLIC.PRIVACY} className="text-[11.5px] text-muted-foreground hover:text-foreground">Terms</Link>
+                                        <Link href={ROUTE_PATHS.PUBLIC.PRIVACY} className="text-[11.5px] text-muted-foreground hover:text-foreground">Cookies</Link>
                                         <span className="ml-auto text-[11px] text-muted-foreground/40">
                                             © {new Date().getFullYear()} Proj-Ariel
                                         </span>
@@ -733,7 +749,7 @@ const Navbar = () => {
                 <div className="h-14" />
             </div>
 
-            {/* Search overlay (outside header so it renders above everything) */}
+            {/* Search overlay */}
             <AnimatePresence>
                 {searchOpen && <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} />}
             </AnimatePresence>

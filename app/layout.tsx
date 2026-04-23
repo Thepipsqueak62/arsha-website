@@ -33,11 +33,11 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: "ArshaEsports",
-  description: "Future Competitive Esports Platform",
+  description: "Future Competitive esports Platform",
   manifest: "/manifest.json",
   openGraph: {
     title: "ArshaEsports",
-    description: "Future Competitive Esports Platform",
+    description: "Future Competitive esports Platform",
     url: "https://arsha-website-six.vercel.app/",
     siteName: "ArshaEsports",
     images: [
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "ArshaEsports",
-    description: "Future Competitive Esports Platform",
+    description: "Future Competitive esports Platform",
     images: ["/og-image.png"],
   },
 };

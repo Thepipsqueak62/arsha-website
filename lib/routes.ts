@@ -13,7 +13,7 @@ export const ROUTE_PATHS = {
 
     },
     ARSHAAPP: {
-        DASHBOARD: "/arsha-app/dashboard",
+        DASHBOARD: "/arsha/app/dashboard",
         PROFILE: "/arsha-app/profile",
         TEST: "/test",
         SETTINGS: "/arsha-app/settings",

@@ -140,12 +140,12 @@ export default function AboutPage() {
             bio: 'Former pro player with 5+ years in competitive Valorant.',
             image: '/team/alex.jpg',
             socials: { twitter: '#', linkedin: '#', github: '#' },
-            achievements: ['Former Pro Player', 'Esports Business Degree'],
+            achievements: ['Former Pro Player', 'esports Business Degree'],
         },
         {
             name: 'Sarah "Echo" Williams',
             role: 'Head of Operations',
-            bio: 'Esports veteran managing teams across League of Legends & CS2.',
+            bio: 'esports veteran managing teams across League of Legends & CS2.',
             image: '/team/sarah.jpg',
             socials: { twitter: '#', linkedin: '#', github: '#' },
             achievements: ['10+ Years Experience', 'MBA in Sports Management'],
@@ -224,7 +224,7 @@ export default function AboutPage() {
             year: '2022',
             title: 'Rookie Team of the Year',
             game: 'CS2',
-            description: 'Awarded by Esports Awards',
+            description: 'Awarded by esports Awards',
             icon: Star,
         },
     ];

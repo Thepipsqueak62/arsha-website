@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
     return {
         name: 'ArshaEsports',
         short_name: 'ArshaEsports',
-        description: 'Future of Competitive Esports',
+        description: 'Future of Competitive esports',
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',
