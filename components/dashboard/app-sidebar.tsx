@@ -2,25 +2,40 @@
 
 import * as React from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
+import Link from "next/link"
 import { cn } from "@/lib/utils"
-
 import {
     RiHome5Fill,
     RiUserFill,
     RiTrophyFill,
     RiTeamFill,
     RiSettings4Fill,
-    RiFlashlightFill
+    RiFlashlightFill,
+    RiBarChartFill,
+    RiMenuFill,
 } from "react-icons/ri"
 import { PiCaretDoubleLeftBold } from "react-icons/pi"
-import { HiSparkles } from "react-icons/hi2"
-import { MdKeyboardCommandKey } from "react-icons/md"
 import { LogOut } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
-import { useState } from "react"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {useIsMobile} from "@/hooks/use-mobile";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+
+// ─── Types ─────────────────────────────────
 
 interface NavItem {
     label: string
@@ -28,6 +43,7 @@ interface NavItem {
     href: string
     badge?: number
     color?: string
+    live?: boolean
 }
 
 interface NavSection {
@@ -35,23 +51,23 @@ interface NavSection {
     items: NavItem[]
 }
 
-// ─── Constants ─────────────────────────────────────────────────────────────────
+// ─── Navigation Config ─────────────────────
 
 const NAV: NavSection[] = [
     {
         label: "Main",
         items: [
-            { label: "Profile",  icon: RiUserFill,  href: "/arsha/app/profile",  badge: 22 },
-            { label: "Feed",     icon: RiHome5Fill, href: "/arsha/app/feed",     badge: 12 },
-            { label: "Settings", icon: RiHome5Fill, href: "/arsha/app/settings", badge: 12 },
+            { label: "Dashboard", icon: RiHome5Fill, href: "/arsha/app" },
+            { label: "Tournaments", icon: RiTrophyFill, href: "/arsha/app/esports/tournaments" },
+            { label: "Teams", icon: RiTeamFill, href: "/arsha/app/esports/teams" },
+            { label: "Profile", icon: RiUserFill, href: "/arsha/app/profile" },
         ],
     },
     {
-        label: "Compete",
+        label: "Competitive",
         items: [
-            { label: "Events",      icon: RiHome5Fill,  href: "/arsha/app/esports/events",      badge: 12 },
-            { label: "Tournaments", icon: RiTrophyFill, href: "/arsha/app/esports/tournaments", badge: 3, color: "#f59e0b" },
-            { label: "Teams",       icon: RiTeamFill,   href: "/arsha/app/esports/teams" },
+            { label: "Matches", icon: RiFlashlightFill, href: "/arsha/app/matches", live: true },
+            { label: "Leaderboard", icon: RiBarChartFill, href: "/arsha/app/leaderboard" },
         ],
     },
 ]
@@ -62,458 +78,567 @@ const SETTINGS: NavItem = {
     href: "/arsha/app/settings",
 }
 
-const W_OPEN      = 264
-const W_COLLAPSED = 72
+// ─── Hook: User Session ────────────────────
 
-// ─── NavBtn ───────────────────────────────────────────────────────────────────
+interface User {
+    email?: string
+    name?: string
+    image?: string | null
+}
 
-function NavBtn({ item, isActive, isOpen, onClick }: {
+function useUser() {
+    const [user, setUser] = React.useState<User | null>(null)
+    const [loading, setLoading] = React.useState(true)
+    const [error, setError] = React.useState<Error | null>(null)
+
+    React.useEffect(() => {
+        let cancelled = false
+
+        const fetchUser = async () => {
+            try {
+                const { data } = await authClient.getSession()
+                if (!cancelled) setUser(data?.user ?? null)
+            } catch (err) {
+                if (!cancelled) setError(err instanceof Error ? err : new Error("Session fetch failed"))
+            } finally {
+                if (!cancelled) setLoading(false)
+            }
+        }
+
+        fetchUser()
+        return () => { cancelled = true }
+    }, [])
+
+    return { user, loading, error }
+}
+
+// ─── Get User Initials ─────────────────────
+
+function getInitials(name?: string, email?: string): string {
+    if (name) {
+        return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
+    }
+    if (email) {
+        return email[0].toUpperCase()
+    }
+    return "?"
+}
+
+// ─── Nav Button ────────────────────────────
+
+interface NavBtnProps {
     item: NavItem
     isActive: boolean
     isOpen: boolean
-    onClick: () => void
-}) {
-    const Icon   = item.icon
+    onClick?: () => void
+}
+
+function NavBtn({ item, isActive, isOpen, onClick }: NavBtnProps) {
+    const Icon = item.icon
     const accent = item.color ?? "#8b5cf6"
 
-    return (
-        <li className="relative">
-            <button
-                onClick={onClick}
-                aria-current={isActive ? "page" : undefined}
-                className={cn(
-                    "group relative flex w-full items-center gap-3 rounded-[14px] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40",
-                    isOpen ? "h-11 px-2.5" : "h-11 w-11 mx-auto justify-center px-0",
-                    isActive ? "text-white" : "text-white/25 hover:text-white/60",
-                )}
-                style={{
-                    background: isActive
-                        ? `linear-gradient(135deg, ${accent}22 0%, ${accent}10 100%)`
-                        : undefined,
-                }}
-                onMouseEnter={e => {
-                    if (!isActive) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"
-                }}
-                onMouseLeave={e => {
-                    if (!isActive) (e.currentTarget as HTMLElement).style.background = ""
-                }}
-            >
-                {isActive && (
-                    <motion.span
-                        layoutId="activeBg"
-                        className="pointer-events-none absolute inset-0 rounded-[14px]"
-                        style={{ border: `1px solid ${accent}40` }}
-                        transition={{ type: "spring", stiffness: 400, damping: 34 }}
-                    />
-                )}
-                {isActive && (
-                    <motion.span
-                        layoutId="activeBar"
-                        className="absolute -left-3 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full"
-                        style={{ background: accent }}
-                        transition={{ type: "spring", stiffness: 400, damping: 34 }}
-                    />
-                )}
-
+    const content = (
+        <Link
+            href={item.href}
+            onClick={onClick}
+            aria-current={isActive ? "page" : undefined}
+            className={cn(
+                "group relative flex items-center gap-3 rounded-xl transition-all duration-200 outline-none",
+                "focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#080815]",
+                isOpen ? "h-11 px-3" : "h-11 w-11 justify-center mx-auto",
+                isActive
+                    ? "text-white"
+                    : "text-white/30 hover:text-white/70 hover:bg-white/[0.04]"
+            )}
+        >
+            {/* Active left accent bar */}
+            {isActive && (
                 <span
-                    className="relative flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-xl transition-all duration-200"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full"
+                    style={{ backgroundColor: accent }}
+                />
+            )}
+
+            {/* Active background glow */}
+            {isActive && (
+                <span
+                    className="absolute inset-0 rounded-xl"
                     style={{
-                        background: isActive ? `${accent}28` : undefined,
-                        color: isActive ? accent : "currentColor",
+                        background: `${accent}12`,
+                        boxShadow: `0 0 0 1px ${accent}40, 0 0 12px ${accent}30`,
                     }}
-                >
-                    <Icon size={16} />
-                    {!isOpen && item.badge !== undefined && (
-                        <span
-                            className="absolute -right-1 -top-1 flex h-[15px] min-w-[15px] items-center justify-center rounded-full px-[3px] text-[8px] font-black leading-none text-white"
-                            style={{ background: accent }}
-                        >
-                            {item.badge}
-                        </span>
-                    )}
-                </span>
+                />
+            )}
 
-                <AnimatePresence initial={false}>
-                    {isOpen && (
-                        <motion.span
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -10 }}
-                            transition={{ duration: 0.13 }}
-                            className="flex flex-1 items-center justify-between overflow-hidden"
-                        >
-                            <span className="truncate text-[13px] font-semibold tracking-[-0.02em]">
-                                {item.label}
-                            </span>
-                            {item.badge !== undefined && (
-                                <span
-                                    className="ml-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-[5px] text-[9.5px] font-black leading-none text-white"
-                                    style={{ background: accent }}
-                                >
-                                    {item.badge}
-                                </span>
-                            )}
-                        </motion.span>
-                    )}
-                </AnimatePresence>
+            {/* Icon with hover micro-interaction */}
+            <motion.span
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+            >
+                <Icon size={16} />
+            </motion.span>
 
-                {!isOpen && (
-                    <span className="pointer-events-none absolute left-[calc(100%+14px)] top-1/2 z-[100] -translate-y-1/2 whitespace-nowrap rounded-xl border border-white/8 bg-[#0f0f20]/95 px-3 py-1.5 text-[12px] font-semibold text-white/90 opacity-0 shadow-2xl backdrop-blur-sm transition-opacity duration-150 group-hover:opacity-100">
+            {/* Label */}
+            <AnimatePresence initial={false}>
+                {isOpen && (
+                    <motion.span
+                        initial={{ opacity: 0, x: -6 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -6 }}
+                        transition={{ duration: 0.15 }}
+                        className="relative flex flex-1 items-center justify-between text-sm font-semibold overflow-hidden whitespace-nowrap"
+                    >
                         {item.label}
-                        {item.badge !== undefined && (
-                            <span
-                                className="ml-1.5 rounded-full px-1.5 py-px text-[8.5px] font-black text-white"
-                                style={{ background: accent }}
-                            >
-                                {item.badge}
-                            </span>
+
+                        {item.live && (
+                            <span className="ml-2 flex items-center gap-1">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+                </span>
+                <span className="text-[9px] font-bold tracking-widest text-red-400">
+                  LIVE
+                </span>
+              </span>
                         )}
-                    </span>
+
+                        {item.badge != null && item.badge > 0 && (
+                            <span className="ml-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-violet-500 px-1 text-[10px] font-bold text-white">
+                {item.badge > 99 ? "99+" : item.badge}
+              </span>
+                        )}
+                    </motion.span>
                 )}
-            </button>
-        </li>
+            </AnimatePresence>
+
+            {/* Collapsed state indicators */}
+            {!isOpen && item.live && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+        </span>
+            )}
+
+            {!isOpen && item.badge != null && item.badge > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-violet-500 px-1 text-[9px] font-bold text-white">
+          {item.badge > 9 ? "9+" : item.badge}
+        </span>
+            )}
+        </Link>
+    )
+
+    // Wrap in tooltip when collapsed
+    if (!isOpen) {
+        return (
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    {content}
+                </TooltipTrigger>
+                <TooltipContent side="right" className="bg-[#1a1a2e] text-white border-white/10">
+          <span className="flex items-center gap-2">
+            {item.label}
+              {item.live && <span className="text-red-400 text-[9px] font-bold">LIVE</span>}
+              {item.badge != null && item.badge > 0 && (
+                  <span className="text-violet-400 text-[10px] font-bold">{item.badge}</span>
+              )}
+          </span>
+                </TooltipContent>
+            </Tooltip>
+        )
+    }
+
+    return content
+}
+
+// ─── Mobile Navigation Content ─────────────
+
+interface MobileNavContentProps {
+    pathname: string
+    isActive: (href: string) => boolean
+    user: User | null
+    loading: boolean
+    loggingOut: boolean
+    onLogout: () => void
+    onNavClick: () => void
+}
+
+function MobileNavContent({
+                              isActive,
+                              user,
+                              loading,
+                              loggingOut,
+                              onLogout,
+                              onNavClick,
+                          }: MobileNavContentProps) {
+    return (
+        <div className="flex flex-col h-full bg-[#080815]">
+            <SheetHeader className="border-b border-white/5 px-4 py-4">
+                <SheetTitle className="flex items-center gap-3 text-white">
+                    <div className="h-10 w-10 shrink-0 rounded-xl bg-violet-600 flex items-center justify-center text-white font-bold">
+                        A
+                    </div>
+                    Arsha
+                </SheetTitle>
+            </SheetHeader>
+
+            <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto">
+                {NAV.map((section) => (
+                    <div key={section.label}>
+                        <p className="text-xs text-white/20 px-2 mb-2 uppercase tracking-wider">
+                            {section.label}
+                        </p>
+                        {section.items.map((item) => (
+                            <NavBtn
+                                key={item.href}
+                                item={item}
+                                isActive={isActive(item.href)}
+                                isOpen={true}
+                                onClick={onNavClick}
+                            />
+                        ))}
+                    </div>
+                ))}
+            </nav>
+
+            <div className="p-3 border-t border-white/5">
+                <NavBtn
+                    item={SETTINGS}
+                    isActive={isActive(SETTINGS.href)}
+                    isOpen={true}
+                    onClick={onNavClick}
+                />
+
+                <button
+                    onClick={onLogout}
+                    disabled={loggingOut}
+                    className={cn(
+                        "mt-2 flex w-full items-center justify-center gap-2 rounded-lg h-10 transition",
+                        "text-red-400 hover:bg-red-500/10",
+                        "outline-none focus-visible:ring-2 focus-visible:ring-red-500",
+                        "disabled:opacity-40 disabled:cursor-not-allowed"
+                    )}
+                >
+                    <LogOut size={14} className={loggingOut ? "animate-spin" : ""} />
+                    <span className="text-sm font-semibold">
+            {loggingOut ? "Logging out..." : "Log out"}
+          </span>
+                </button>
+
+                {/* User info with avatar */}
+                <div className="mt-3 flex items-center gap-3 px-1">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={user?.image ?? undefined} alt={user?.name ?? user?.email ?? "User"} />
+                        <AvatarFallback className="bg-violet-600/20 text-violet-400 text-xs font-semibold">
+                            {getInitials(user?.name, user?.email)}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                        {loading ? (
+                            <span className="inline-block w-24 h-3 rounded bg-white/10 animate-pulse" />
+                        ) : (
+                            <>
+                                {user?.name && (
+                                    <p className="text-sm font-medium text-white truncate">{user.name}</p>
+                                )}
+                                <p className="text-xs text-white/40 truncate">{user?.email}</p>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
     )
 }
 
-// ─── Sidebar ──────────────────────────────────────────────────────────────────
+// ─── Sidebar ───────────────────────────────
 
 export function ArshaAppSidebar() {
     const pathname = usePathname()
-    const router   = useRouter()
+    const [isOpen, setIsOpen] = React.useState(true)
+    const [mobileOpen, setMobileOpen] = React.useState(false)
+    const [loggingOut, setLoggingOut] = React.useState(false)
+    const { user, loading } = useUser()
+    const isMobile = useIsMobile()
 
-    const [open,    setOpen]    = React.useState(true)
-    const [isMac,   setIsMac]   = React.useState(false)
-
-    // ── User state ──
-    const [username, setUsername] = useState<string | null>(null)
-    const [email,    setEmail]    = useState<string | null>(null)
-    const [avatar,   setAvatar]   = useState<string | null>(null)
-    const [loading,  setLoading]  = useState(true)
-
-    const initials = username?.charAt(0).toUpperCase() ?? "?"
-
-    // ── Fetch session ──
-    const getUserData = async () => {
-        try {
-            const { data } = await authClient.getSession()
-            if (data?.user) {
-                setUsername(data.user.name || data.user.email || "User")
-                setEmail(data.user.email)
-                setAvatar(data.user.image ?? null)
-            } else {
-                setUsername(null)
-                setEmail(null)
-                setAvatar(null)
-            }
-        } catch (err) {
-            console.error(err)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    // ── Sign out ──
-    const handleLogout = async () => {
-        await authClient.signOut()
-        // Notify the public Navbar on the same tab so it clears instantly
-        window.dispatchEvent(new Event("auth:signout"))
-        router.push("/")
-    }
-
-    // ── Effects ──
-    React.useEffect(() => {
-        getUserData()
-    }, [])
-
-    React.useEffect(() => {
-        setIsMac(navigator.platform.toUpperCase().indexOf("MAC") >= 0)
-    }, [])
-
+    // Keyboard shortcut: Cmd/Ctrl + B to toggle
     React.useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "b" && (e.metaKey || e.ctrlKey)) {
+            if ((e.metaKey || e.ctrlKey) && e.key === "b") {
                 e.preventDefault()
-                setOpen(o => !o)
+                if (isMobile) {
+                    setMobileOpen(prev => !prev)
+                } else {
+                    setIsOpen(prev => !prev)
+                }
             }
         }
+
         window.addEventListener("keydown", handleKeyDown)
         return () => window.removeEventListener("keydown", handleKeyDown)
-    }, [])
+    }, [isMobile])
 
+    // Matches active item, including nested routes
+    const isActive = React.useCallback(
+        (href: string) => {
+            if (href === "/arsha/app") return pathname === href
+            return pathname === href || pathname.startsWith(href + "/")
+        },
+        [pathname]
+    )
+
+    const handleLogout = async () => {
+        if (loggingOut) return
+        setLoggingOut(true)
+        try {
+            await authClient.signOut()
+            window.location.href = "/"
+        } catch {
+            setLoggingOut(false)
+        }
+    }
+
+    // Mobile: render sheet drawer
+    if (isMobile) {
+        return (
+            <>
+                {/* Mobile trigger button */}
+                <button
+                    onClick={() => setMobileOpen(true)}
+                    className="fixed top-4 left-4 z-50 flex h-10 w-10 items-center justify-center rounded-xl bg-[#080815] border border-white/10 text-white/70 hover:text-white hover:bg-white/5 transition-colors md:hidden"
+                    aria-label="Open navigation"
+                >
+                    <RiMenuFill size={18} />
+                </button>
+
+                <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+                    <SheetTrigger className="sr-only">Open navigation</SheetTrigger>
+                    <SheetContent side="left" className="p-0 w-72 border-white/5 bg-[#080815]">
+                        <MobileNavContent
+                            pathname={pathname}
+                            isActive={isActive}
+                            user={user}
+                            loading={loading}
+                            loggingOut={loggingOut}
+                            onLogout={handleLogout}
+                            onNavClick={() => setMobileOpen(false)}
+                        />
+                    </SheetContent>
+                </Sheet>
+            </>
+        )
+    }
+
+    // Desktop: render collapsible sidebar
     return (
-        <div className="relative flex h-full shrink-0">
-            {/* ─── Edge Handle ─── */}
-            <div className="absolute -right-px top-8 bottom-8 z-40 flex items-center">
-                <motion.button
-                    onClick={() => setOpen(o => !o)}
-                    aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
-                    className="group relative flex h-12 w-5 items-center justify-center rounded-l-lg border border-r-0 border-white/[0.06] bg-[#0c0c1a] shadow-xl transition-all duration-200 hover:bg-[#111128] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40"
-                    whileHover={{ width: 6 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                >
-                    <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-violet-500/50 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-                    <motion.span
-                        animate={{ rotate: open ? 0 : 180 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                        className="text-white/20 transition-colors duration-200 group-hover:text-white/50"
-                    >
-                        <PiCaretDoubleLeftBold size={10} />
-                    </motion.span>
-                </motion.button>
-            </div>
-
-            {/* ─── Sidebar Container ─── */}
-            <motion.aside
-                animate={{ width: open ? W_OPEN : W_COLLAPSED }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="relative flex h-full flex-col overflow-hidden"
-                style={{
-                    background: "#080815",
-                    borderRight: "1px solid rgba(255,255,255,0.06)",
-                }}
-            >
-                {/* Noise texture */}
-                <svg className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.015]" xmlns="http://www.w3.org/2000/svg">
-                    <filter id="noise">
-                        <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="4" stitchTiles="stitch"/>
-                        <feColorMatrix type="saturate" values="0"/>
-                    </filter>
-                    <rect width="100%" height="100%" filter="url(#noise)"/>
-                </svg>
-
-                {/* Ambient glows */}
-                <div className="pointer-events-none absolute left-1/2 top-0 h-[200px] w-[200px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-30"
-                     style={{ background: "radial-gradient(circle, #6d28d9 0%, transparent 65%)" }} />
-                <div className="pointer-events-none absolute bottom-0 left-0 h-[160px] w-[160px] -translate-x-1/3 translate-y-1/3 rounded-full opacity-20"
-                     style={{ background: "radial-gradient(circle, #4f46e5 0%, transparent 65%)" }} />
-
-                {/* ─── Header ─── */}
-                <div
-                    className="relative flex h-[68px] shrink-0 items-center gap-3 overflow-hidden px-4"
-                    style={{ borderBottom: "1px solid rgba(255,255,255,0.055)" }}
-                >
-                    <div className="relative shrink-0">
-                        <div className="absolute inset-0 scale-150 rounded-xl bg-violet-600/40 blur-xl" />
-                        <div
-                            className="relative flex h-10 w-10 items-center justify-center rounded-xl text-[11px] font-black tracking-widest text-white"
-                            style={{
-                                background: "linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)",
-                                boxShadow: "0 0 0 1px rgba(139,92,246,0.5), inset 0 1px 0 rgba(255,255,255,0.15)",
-                            }}
-                        >
-                            AE
-                        </div>
-                    </div>
-
-                    <AnimatePresence initial={false}>
-                        {open && (
-                            <motion.div
-                                initial={{ opacity: 0, x: -12 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -12 }}
-                                transition={{ duration: 0.16 }}
-                                className="overflow-hidden"
+        <TooltipProvider delayDuration={100}>
+            <div className="relative flex h-full">
+                {/* Edge Toggle */}
+                <div className="absolute -right-[6px] top-8 bottom-8 z-40 flex items-center">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <motion.button
+                                onClick={() => setIsOpen((o) => !o)}
+                                aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+                                aria-expanded={isOpen}
+                                className={cn(
+                                    "group relative flex h-12 w-3 items-center justify-center",
+                                    "rounded-l-md border border-white/5 bg-white/[0.02] backdrop-blur-sm",
+                                    "transition-all hover:w-5 hover:bg-white/[0.05]",
+                                    "outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                                )}
                             >
-                                <div className="flex items-baseline gap-[3px]">
-                                    <span className="text-[17px] font-black tracking-[-0.05em] text-white">arsha</span>
-                                    <span className="text-[17px] font-black text-violet-400">.</span>
-                                    <span
-                                        className="ml-1 rounded-md px-1.5 py-px text-[8.5px] font-black uppercase tracking-widest"
-                                        style={{
-                                            background: "rgba(139,92,246,0.2)",
-                                            color: "#a78bfa",
-                                            border: "1px solid rgba(139,92,246,0.3)",
-                                        }}
-                                    >
-                                        PRO
-                                    </span>
-                                </div>
-                                <div className="mt-0.5 flex items-center gap-1">
-                                    <HiSparkles size={9} className="text-violet-400/70" />
-                                    <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-white/25">
-                                        Esports Platform
-                                    </span>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                                <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-violet-500/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                                <motion.span
+                                    animate={{ rotate: isOpen ? 0 : 180 }}
+                                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                    className="text-white/30 group-hover:text-white/70 transition-colors"
+                                >
+                                    <PiCaretDoubleLeftBold size={10} />
+                                </motion.span>
+                            </motion.button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="bg-[#1a1a2e] text-white border-white/10">
+              <span className="flex items-center gap-2">
+                {isOpen ? "Collapse" : "Expand"}
+                  <kbd className="ml-1 px-1.5 py-0.5 text-[10px] font-mono bg-white/10 rounded">
+                  {typeof navigator !== "undefined" && navigator.platform?.includes("Mac") ? "Cmd" : "Ctrl"}+B
+                </kbd>
+              </span>
+                        </TooltipContent>
+                    </Tooltip>
                 </div>
 
-                {/* ─── Navigation ─── */}
-                <nav className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    <div className={cn("flex flex-col gap-0.5", open ? "px-3" : "px-[10px]")}>
-                        {NAV.map((section, si) => (
-                            <div key={section.label} className={cn(si > 0 && "mt-3")}>
+                <motion.aside
+                    animate={{ width: isOpen ? 260 : 72 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 30 }}
+                    className="flex flex-col overflow-hidden bg-[#080815] border-r border-white/5"
+                >
+                    {/* Header */}
+                    <div className="h-16 flex items-center px-4 shrink-0">
+                        <motion.div
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="h-10 w-10 shrink-0 rounded-xl bg-violet-600 flex items-center justify-center text-white font-bold select-none cursor-pointer"
+                        >
+                            A
+                        </motion.div>
+
+                        <AnimatePresence initial={false}>
+                            {isOpen && (
+                                <motion.span
+                                    initial={{ opacity: 0, x: -6 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -6 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="ml-3 font-bold text-white whitespace-nowrap overflow-hidden"
+                                >
+                                    Arsha
+                                </motion.span>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* Nav */}
+                    <nav className="flex-1 px-2 space-y-4 overflow-y-auto overflow-x-hidden">
+                        {NAV.map((section) => (
+                            <div key={section.label}>
                                 <AnimatePresence initial={false}>
-                                    {open && (
+                                    {isOpen && (
                                         <motion.p
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
                                             exit={{ opacity: 0 }}
                                             transition={{ duration: 0.1 }}
-                                            className="mb-1.5 px-3 text-[9px] font-black uppercase tracking-[0.2em] text-white/20"
+                                            className="text-xs text-white/20 px-2 mb-1 uppercase tracking-wider whitespace-nowrap"
                                         >
                                             {section.label}
                                         </motion.p>
                                     )}
                                 </AnimatePresence>
-                                {!open && si > 0 && <div className="mx-auto mb-3 h-px w-6 bg-white/8" />}
-                                <ul className="space-y-0.5">
-                                    {section.items.map(item => (
-                                        <NavBtn
-                                            key={item.href}
-                                            item={item}
-                                            isActive={pathname === item.href}
-                                            isOpen={open}
-                                            onClick={() => router.push(item.href)}
-                                        />
-                                    ))}
-                                </ul>
+
+                                {section.items.map((item) => (
+                                    <NavBtn
+                                        key={item.href}
+                                        item={item}
+                                        isActive={isActive(item.href)}
+                                        isOpen={isOpen}
+                                    />
+                                ))}
                             </div>
                         ))}
-                    </div>
+                    </nav>
 
-                    <div className="flex-1" />
-
-                    {/* Settings */}
-                    <div className={cn("mb-1 mt-3 h-px bg-white/6", open ? "mx-3" : "mx-[10px]")} />
-                    <div className={cn(open ? "px-3" : "px-[10px]")}>
+                    {/* Footer */}
+                    <div className="p-3 border-t border-white/5 shrink-0">
                         <NavBtn
                             item={SETTINGS}
-                            isActive={pathname === SETTINGS.href}
-                            isOpen={open}
-                            onClick={() => router.push(SETTINGS.href)}
+                            isActive={isActive(SETTINGS.href)}
+                            isOpen={isOpen}
                         />
-                    </div>
-                </nav>
 
-                {/* ─── Footer ─── */}
-                <div
-                    className="relative shrink-0 p-3"
-                    style={{ borderTop: "1px solid rgba(255,255,255,0.055)" }}
-                >
-                    <div
-                        className="pointer-events-none absolute inset-x-0 bottom-0 h-20 opacity-30"
-                        style={{ background: "linear-gradient(to top, #4c1d9520, transparent)" }}
-                    />
-
-                    {/* Keyboard shortcut hint */}
-                    {open && (
-                        <div className="mb-2 flex items-center justify-between px-1">
-                            <span className="text-[9px] font-medium uppercase tracking-wider text-white/15">
-                                Quick Actions
-                            </span>
-                            <kbd className="flex items-center gap-0.5 rounded-md border border-white/10 bg-white/[0.02] px-1.5 py-0.5 text-[9px] font-mono text-white/25">
-                                {isMac ? (
-                                    <><MdKeyboardCommandKey size={10} /><span>B</span></>
-                                ) : (
-                                    <span>Ctrl+B</span>
+                        {/* Logout button with tooltip when collapsed */}
+                        {isOpen ? (
+                            <button
+                                onClick={handleLogout}
+                                disabled={loggingOut}
+                                className={cn(
+                                    "mt-2 flex w-full items-center justify-center gap-2 rounded-lg h-10 transition",
+                                    "text-red-400 hover:bg-red-500/10",
+                                    "outline-none focus-visible:ring-2 focus-visible:ring-red-500",
+                                    "disabled:opacity-40 disabled:cursor-not-allowed"
                                 )}
-                            </kbd>
-                        </div>
-                    )}
-
-                    {/* User row */}
-                    <div
-                        className={cn(
-                            "group relative flex w-full items-center gap-3 rounded-[14px] p-2 transition-all duration-200",
-                            !open && "justify-center",
-                        )}
-                        onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)")}
-                        onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = "")}
-                    >
-                        {/* Avatar */}
-                        <div className="relative shrink-0">
-                            <div
-                                className="flex h-9 w-9 items-center justify-center rounded-xl text-[10px] font-black text-white overflow-hidden"
-                                style={{
-                                    background: "linear-gradient(135deg, #7c3aed 0%, #312e81 100%)",
-                                    boxShadow: "0 0 0 1.5px rgba(139,92,246,0.5), 0 0 16px rgba(124,58,237,0.3)",
-                                }}
                             >
-                                {loading ? (
-                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                                ) : avatar ? (
-                                    <img src={avatar} alt={username ?? ""} className="h-9 w-9 object-cover" />
-                                ) : (
-                                    initials
-                                )}
-                            </div>
-                            {/* Online dot */}
-                            <span
-                                className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-[2px]"
-                                style={{
-                                    background: "#34d399",
-                                    borderColor: "#080815",
-                                    boxShadow: "0 0 6px #34d39980",
-                                }}
-                            />
-                        </div>
-
-                        {/* Name + email */}
-                        <AnimatePresence initial={false}>
-                            {open && (
-                                <motion.div
-                                    initial={{ opacity: 0, x: -10 }}
+                                <LogOut size={14} className={loggingOut ? "animate-spin" : ""} />
+                                <motion.span
+                                    initial={{ opacity: 0, x: -6 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -10 }}
-                                    transition={{ duration: 0.13 }}
-                                    className="flex flex-1 flex-col overflow-hidden"
+                                    className="text-sm font-semibold whitespace-nowrap"
                                 >
-                                    {loading ? (
-                                        <>
-                                            <div className="h-3 w-24 rounded bg-white/10 animate-pulse mb-1" />
-                                            <div className="h-2.5 w-32 rounded bg-white/6 animate-pulse" />
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span className="truncate text-[13px] font-bold tracking-[-0.02em] text-white/90">
-                                                {username ?? "Unknown"}
-                                            </span>
-                                            <div className="flex items-center gap-1">
-                                                <RiFlashlightFill size={9} className="text-violet-400/70" />
-                                                <span className="truncate text-[10px] font-semibold tracking-tight text-white/30">
-                                                    {email ?? ""}
-                                                </span>
-                                            </div>
-                                        </>
-                                    )}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                                    {loggingOut ? "Logging out..." : "Log out"}
+                                </motion.span>
+                            </button>
+                        ) : (
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        onClick={handleLogout}
+                                        disabled={loggingOut}
+                                        className={cn(
+                                            "mt-2 flex w-full items-center justify-center gap-2 rounded-lg h-10 transition",
+                                            "text-red-400 hover:bg-red-500/10",
+                                            "outline-none focus-visible:ring-2 focus-visible:ring-red-500",
+                                            "disabled:opacity-40 disabled:cursor-not-allowed"
+                                        )}
+                                    >
+                                        <LogOut size={14} className={loggingOut ? "animate-spin" : ""} />
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="right" className="bg-[#1a1a2e] text-white border-white/10">
+                                    Log out
+                                </TooltipContent>
+                            </Tooltip>
+                        )}
 
-                        {/* Sign out button — only visible when sidebar is open */}
+                        {/* User info with avatar */}
                         <AnimatePresence initial={false}>
-                            {open && (
-                                <motion.button
+                            {isOpen ? (
+                                <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.13 }}
-                                    onClick={handleLogout}
-                                    aria-label="Sign out"
-                                    className="ml-auto shrink-0 flex h-7 w-7 items-center justify-center rounded-lg text-white/20 transition-colors hover:bg-red-500/15 hover:text-red-400"
+                                    transition={{ duration: 0.15 }}
+                                    className="mt-3 flex items-center gap-3 px-1"
                                 >
-                                    <LogOut size={13} />
-                                </motion.button>
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage src={user?.image ?? undefined} alt={user?.name ?? user?.email ?? "User"} />
+                                        <AvatarFallback className="bg-violet-600/20 text-violet-400 text-xs font-semibold">
+                                            {getInitials(user?.name, user?.email)}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1 min-w-0">
+                                        {loading ? (
+                                            <span className="inline-block w-24 h-3 rounded bg-white/10 animate-pulse" />
+                                        ) : (
+                                            <>
+                                                {user?.name && (
+                                                    <p className="text-sm font-medium text-white truncate">{user.name}</p>
+                                                )}
+                                                <p className="text-xs text-white/40 truncate">{user?.email}</p>
+                                            </>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="mt-3 flex justify-center"
+                                >
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Avatar className="h-8 w-8 cursor-pointer">
+                                                <AvatarImage src={user?.image ?? undefined} alt={user?.name ?? user?.email ?? "User"} />
+                                                <AvatarFallback className="bg-violet-600/20 text-violet-400 text-xs font-semibold">
+                                                    {getInitials(user?.name, user?.email)}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="right" className="bg-[#1a1a2e] text-white border-white/10">
+                                            <div>
+                                                {user?.name && <p className="font-medium">{user.name}</p>}
+                                                <p className="text-white/60">{user?.email}</p>
+                                            </div>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </motion.div>
                             )}
                         </AnimatePresence>
                     </div>
-
-                    {/* Sign out row when collapsed */}
-                    {!open && (
-                        <div className="mt-1 px-[10px]">
-                            <button
-                                onClick={handleLogout}
-                                aria-label="Sign out"
-                                className="group flex h-11 w-11 mx-auto items-center justify-center rounded-[14px] text-white/20 transition-colors hover:bg-red-500/15 hover:text-red-400"
-                            >
-                                <LogOut size={15} />
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </motion.aside>
-        </div>
+                </motion.aside>
+            </div>
+        </TooltipProvider>
     )
 }
