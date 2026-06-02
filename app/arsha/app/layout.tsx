@@ -7,10 +7,9 @@ export default function ArshaAppLayout({
 }) {
     return (
         <div
-            className="fixed inset-0 z-50 flex overflow-hidden"
+            className=""
             style={{ background: "#0a0a0f" }}
         >
-            <ArshaAppSidebar />
             <main className="flex flex-1 flex-col overflow-auto text-white">
                 {children}
             </main>

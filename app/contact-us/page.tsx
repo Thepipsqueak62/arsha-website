@@ -31,6 +31,7 @@ import {
 } from 'react-icons/fa';
 import { GiSwordman } from 'react-icons/gi';
 import { MdSportsEsports } from 'react-icons/md';
+import {contactInfo} from "@/mock-data/contactInfoData";
 
 const ContactUs = () => {
     // Animation variants
@@ -73,32 +74,7 @@ const ContactUs = () => {
     const { ref: contactRef, inView: contactInView } = useAnimatedSection();
     const { ref: formRef, inView: formInView } = useAnimatedSection();
 
-    const contactInfo = [
-        {
-            icon: FaMapMarkerAlt,
-            title: "esports Arena",
-            details: ["123 Championship Blvd", "Los Angeles, CA 90001", "United States"],
-            description: "Visit our state-of-the-art gaming facility"
-        },
-        {
-            icon: FaPhone,
-            title: "Contact Numbers",
-            details: ["+1 (888) ESP-ORTS", "+1 (555) 123-4567"],
-            description: "24/7 Hotline for urgent matters"
-        },
-        {
-            icon: FaEnvelope,
-            title: "Email Us",
-            details: ["pro@esportscompany.com", "sponsors@esportscompany.com", "support@esportscompany.com"],
-            description: "Response within 2-4 hours"
-        },
-        {
-            icon: FaClock,
-            title: "Business Hours",
-            details: ["Monday - Friday: 10:00 - 22:00", "Saturday - Sunday: 12:00 - 20:00"],
-            description: "Tournament support available 24/7"
-        }
-    ];
+
 
     const socialLinks = [
         { icon: FaTwitch, name: "Twitch", handle: "@EsportsCompany", color: "hover:text-purple-500" },
@@ -381,7 +357,7 @@ const ContactUs = () => {
                 </motion.div>
             </section>
 
-            {/* Pro teams Section */}
+            {/* Pro esports-teams Section */}
             <section className="py-20 bg-muted/30">
                 <motion.div
                     initial="initial"

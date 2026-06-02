@@ -1,4 +1,4 @@
-﻿// app/arsha/verify-email/page.tsx
+﻿// app/arsha/verify-email/pagee.tsx
 "use client";
 
 import { useState, Suspense, useEffect } from "react";

@@ -29,7 +29,7 @@ export default function MainPage() {
         () => [
             {
                 title: "Instant Matchmaking",
-                description: "Get into ranked matches in under 30 seconds with our smart queue system.",
+                description: "Get into ranked tournaments in under 30 seconds with our smart queue system.",
                 icon: Zap,
             },
             {

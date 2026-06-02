@@ -1,9 +1,9 @@
-﻿// app/arsha/sign-up/page.tsx - Clean version
+﻿// app/arsha/sign-up/pagee.tsx - Clean version
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import {useEffect, useState} from "react";
+import {useRouter, useSearchParams} from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { authClient } from "@/lib/auth-client";
@@ -36,6 +36,19 @@ export default function SignUpPage() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const searchParams = useSearchParams();
+
+
+    useEffect(() => {
+        async function checkSession(){
+            const {data} = await authClient.getSession();
+            if(data?.user){
+                const redirectTo = searchParams.get("from") ?? "/arsha/app/dashboard";
+                router.replace(redirectTo);
+            }
+        }
+        checkSession();
+    },[])
 
     const getPasswordStrength = (pwd: string): number => {
         let strength = 0;

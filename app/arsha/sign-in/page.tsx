@@ -1,8 +1,8 @@
-﻿// app/arsha/sign-in/page.tsx
+﻿// app/arsha/sign-in/pagee.tsx
 "use client";
 
 import * as React from "react";
-import { useState, Suspense } from "react";
+import {useState, Suspense, useEffect} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,6 +24,21 @@ function SignInForm() {
 
     const router = useRouter();
     const searchParams = useSearchParams();
+
+    useEffect(() => {
+        async function checkSession(){
+            const {data} = await authClient.getSession();
+            if(data?.user){
+                const redirectTo = searchParams.get("from") ?? "/arsha/app/dashboard";
+                router.replace(redirectTo);
+            }
+        }
+        checkSession();
+    },[])
+
+
+
+
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -178,7 +193,7 @@ function SignInForm() {
                         <Separator />
 
                         <div className="text-sm text-center text-muted-foreground">
-                            Don't have an account?{" "}
+                            Don&#39;t have an account?{" "}
                             <Link
                                 href="/arsha/sign-up"
                                 className="text-primary hover:underline font-semibold"

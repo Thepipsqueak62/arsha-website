@@ -1,77 +1,68 @@
-﻿import Link from "next/link"
+﻿// app/arsha/app/pagee.tsx
+import Link from "next/link";
+import {
+    HiPlay,
+    HiVideoCamera,
+    HiUsers,
+    HiChartBar,
+    HiCog6Tooth,
+} from "react-icons/hi2";
 
-export default function ArshaPage() {
+const quickActions = [
+    { title: "Matches", href: "/arsha/app/tournaments", icon: HiPlay },
+    { title: "Streams", href: "/arsha/app/streams", icon: HiVideoCamera },
+    { title: "Teams", href: "/arsha/app/esports-teams", icon: HiUsers },
+    { title: "Leaderboard", href: "/arsha/app/leaderboard", icon: HiChartBar },
+    { title: "Settings", href: "/arsha/app/settings", icon: HiCog6Tooth },
+];
+
+export default function DboardPage() {
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center px-6 text-white" style={{ background: "#0a0a0f" }}>
+        <div className="p-6 space-y-8">
 
-            {/* Logo */}
-            <div
-                className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl text-lg font-bold text-white"
-                style={{ background: "#7F77DD" }}
-            >
-                AE
+            {/* Header */}
+            <div>
+                <h1 className="text-3xl font-bold">Arsha Control Center</h1>
+                <p className="text-zinc-400">
+                    Overview of matches, streams, teams, and activity.
+                </p>
             </div>
 
-            {/* Heading */}
-            <h1 className="mb-3 text-center text-4xl font-bold tracking-tight">
-                Welcome to{" "}
-                <span style={{ color: "#7F77DD" }}>Arsha App</span>
-            </h1>
-
-            <p className="mb-2 max-w-lg text-center text-base" style={{ color: "rgba(255,255,255,0.5)" }}>
-                The competitive esports platform for serious players. Build your
-                professional profile, compete in tournaments, and connect with elite
-                teams across Valorant, Apex Legends, and more.
-            </p>
-
-            {/* Feature pills */}
-            <div className="mb-10 mt-6 flex flex-wrap justify-center gap-2">
-                {["Player profiles", "Clip sharing", "tournaments", "Team finder", "Live feed"].map(f => (
-                    <span
-                        key={f}
-                        className="rounded-full px-3 py-1 text-xs font-medium"
-                        style={{
-                            background: "rgba(127,119,221,0.12)",
-                            color: "#a49ef0",
-                            border: "0.5px solid rgba(127,119,221,0.25)",
-                        }}
-                    >
-            {f}
-          </span>
+            {/* Stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                    { label: "Live Matches", value: "8" },
+                    { label: "Live Streams", value: "12" },
+                    { label: "Teams", value: "24" },
+                    { label: "Players Online", value: "1.2k" },
+                ].map((s) => (
+                    <div key={s.label} className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl">
+                        <p className="text-sm text-zinc-400">{s.label}</p>
+                        <p className="text-2xl font-bold">{s.value}</p>
+                    </div>
                 ))}
             </div>
 
-            {/* CTAs */}
-            <div className="flex gap-3">
-                <Link
-                    href="/arsha/sign-up"
-                    className="rounded-lg px-6 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                    style={{ background: "#7F77DD" }}
-                >
-                    Get started
-                </Link>
-                <Link
-                    href="/arsha/sign-in"
-                    className="rounded-lg px-6 py-2.5 text-sm font-medium transition-colors"
-                    style={{
-                        background: "rgba(127,119,221,0.1)",
-                        color: "rgba(255,255,255,0.7)",
-                        border: "0.5px solid rgba(127,119,221,0.25)",
-                    }}
-                >
-                    Sign in
-                </Link>
+            {/* Quick Actions */}
+            <div className="grid md:grid-cols-2 gap-4">
+                {quickActions.map((a) => {
+                    const Icon = a.icon;
+
+                    return (
+                        <Link
+                            key={a.href}
+                            href={a.href}
+                            className="flex items-center justify-between p-5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700"
+                        >
+                            <div className="flex items-center gap-3">
+                                <Icon className="text-emerald-400" />
+                                <span>{a.title}</span>
+                            </div>
+                        </Link>
+                    );
+                })}
             </div>
 
-            {/* Back to main site */}
-            <Link
-                href="/"
-                className="mt-10 text-xs transition-colors hover:underline"
-                style={{ color: "rgba(255,255,255,0.25)" }}
-            >
-                ← Back to Arsha Esports
-            </Link>
-
         </div>
-    )
+    );
 }

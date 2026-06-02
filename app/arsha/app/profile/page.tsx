@@ -3,7 +3,7 @@
 import * as React from "react"
 import { motion } from "framer-motion"
 import { authClient } from "@/lib/auth-client"
-import { EditProfileSheet, ProfileFormData } from "@/components/edit-profile-sheet"
+import { EditProfileSheet, ProfileFormData } from "@/components/arsha-app-ui/edit-profile-sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import {
@@ -116,7 +116,7 @@ function ShareButton({ username }: { username?: string }) {
 
     const handleCopy = () => {
         const url = username
-            ? `${window.location.origin}/arsha/profile/${username}`
+            ? `${window.location.origin}/arsha/app/profile/${username}`
             : window.location.href
         navigator.clipboard.writeText(url)
         setCopied(true)
@@ -283,7 +283,7 @@ export default function MyProfilePage() {
                     <motion.div {...fadeUp} transition={{ delay: 0.1 }} className="flex items-center gap-2 pb-1">
                         {profile?.username && (
                             <Link
-                                href={`/arsha/profile/${profile.username}`}
+                                href={`/arsha/app/profile/${profile.username}`}
                                 target="_blank"
                                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all border border-white/10 hover:border-white/20 hover:bg-white/5 text-white/60"
                             >
@@ -384,7 +384,7 @@ export default function MyProfilePage() {
                     <StatCard label="Tournaments" value={0} />
                     <StatCard label="Wins" value={0} />
                     <StatCard label="Matches" value={0} />
-                    <StatCard label="Win Rate" value="0%" />
+                    <StatCard label="Win Rate" value={"23%"} />
                 </motion.div>
 
                 {/* ── Content Grid ── */}

@@ -6,7 +6,7 @@ export function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
 
     // Only protect dashboard/app routes
-    const isProtectedRoute = pathname.startsWith("/arsha/app");
+    const isProtectedRoute = pathname.startsWith("/arsha/app/");
 
     // Better Auth cookie (check your browser if unsure)
     const sessionCookie =

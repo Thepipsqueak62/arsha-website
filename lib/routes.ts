@@ -2,21 +2,21 @@
 export const ROUTE_PATHS = {
     PUBLIC: {
         MAINPAGE: "/",
-        ABOUT: "/esports/about-us",
+        ABOUT: "/about-us",
         CONTACT: "/contact-us",
         PRIVACY: "/privacy-policy",
-        BLOG: "/blog",
-        FEATURES: "esports/features",
-        TOURNAMENTNEWS: "/tournament-news",
         NEWSUPDATES: "/news-updates",
-        HELPPAGE: "/help",
+        TOURNAMENTS: "/arsha/tournaments",
+        TEAMS: "/arsha/esports-teams",
+        STREAMS: "/arsha/streams",
 
     },
     ARSHAAPP: {
         DASHBOARD: "/arsha/app/dashboard",
-        PROFILE: "/arsha-app/profile",
-        TEST: "/test",
-        SETTINGS: "/arsha-app/settings",
+        PROFILE: "/arsha/app/profile",
+        SETTINGS: "/arsha/app/settings",
+        TEAM: "/arsha/app/team-management",
+
     },
     AUTH: {
         SIGN_IN: "/arsha/sign-in",

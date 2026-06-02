@@ -1,4 +1,4 @@
-﻿// app/arsha/forgot-password/page.tsx
+﻿// app/arsha/forgot-password/pagee.tsx
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";

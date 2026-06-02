@@ -3,9 +3,19 @@ import { Bebas_Neue, DM_Sans, Geist, Geist_Mono, Inter } from "next/font/google"
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import Navbar from "@/components/navbar/Navbar";
+import Footer from "@/components/footer/Footer";
 import { Toaster } from "sonner";
+import {QueryClient} from "@tanstack/query-core";
+import {QueryProvider} from "@/components/QueryProvider";
+
+
+
+
+const queryClient = new QueryClient();
+
+
+
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -80,17 +90,22 @@ export default function RootLayout({
           )}
       >
       <body className="min-h-full flex flex-col">
-      <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-      >
-        <Navbar />
-        {children}
-        <Footer />
-        <Toaster />
-      </ThemeProvider>
+      <QueryProvider>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+        >
+          <Navbar />
+          <div className="flex flex-1 flex-col pt-[56px] md:pt-[72px]">
+            {children}
+          </div>
+          <Footer />
+          <Toaster />
+        </ThemeProvider>
+      </QueryProvider>
+
       </body>
       </html>
   );
