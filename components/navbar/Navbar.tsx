@@ -130,7 +130,7 @@ const Navbar = () => {
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); setSearchOpen(true); }
-            if (e.key === "/" && !searchOpen && !mobileOpen)  { e.preventDefault(); setSearchOpen(true); }
+            if (e.key === "`" && !searchOpen && !mobileOpen)  { e.preventDefault(); setSearchOpen(true); }
             if (e.key === "Escape" && mobileOpen)              setMobileOpen(false);
         };
         window.addEventListener("keydown", onKey);

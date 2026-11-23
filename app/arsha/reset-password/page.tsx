@@ -1,4 +1,4 @@
-﻿// app/arsha/reset-password/pagee.tsx
+﻿// app/arsha/reset-password/betterauthtesting.tsx
 "use client";
 import { useState, Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";

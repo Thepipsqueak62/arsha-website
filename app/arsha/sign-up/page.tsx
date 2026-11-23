@@ -1,4 +1,4 @@
-﻿// app/arsha/sign-up/pagee.tsx - Clean version
+﻿// app/arsha/sign-up/betterauthtesting.tsx - Clean version
 "use client";
 
 import * as React from "react";

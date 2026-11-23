@@ -1,5 +1,4 @@
-﻿import {ArshaAppSidebar} from "@/components/dashboard/app-sidebar";
-
+﻿
 export default function ArshaAppLayout({
                                            children,
                                        }: {

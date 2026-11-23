@@ -19,6 +19,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function MainPage() {
     const { scrollYProgress } = useScroll();
@@ -179,7 +180,9 @@ export default function MainPage() {
                         size="lg"
                         className="font-semibold shadow-lg transition-all duration-300 hover:scale-105"
                     >
-                        Get Started
+                        <Link href="/arsha/sign-up">
+                            Get Started
+                        </Link>
                         <ArrowRight className="ml-2 w-4 h-4" />
                     </Button>
                     <Button
@@ -188,7 +191,9 @@ export default function MainPage() {
                         className="transition-all duration-300 hover:scale-105"
                     >
                         <PlayCircle className="mr-2 w-4 h-4" />
-                        Watch Demo
+                       <Link href="https://www.youtube.com/watch?v=VuM15F_NqB8">
+                           Arsha Trailer
+                       </Link>
                     </Button>
                 </motion.div>
 

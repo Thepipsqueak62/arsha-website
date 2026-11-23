@@ -20,21 +20,11 @@ import {
     RiCloseLine,
 } from "react-icons/ri"
 import { Loader2 } from "lucide-react"
+import {ProfileFormData} from "@/types/Profile/profileFormatData";
 
 // ─── Types ─────────────────────────────────
 
-export interface ProfileFormData {
-    displayName: string
-    username: string
-    bio: string
-    location: string
-    website: string
-    socials: {
-        twitter: string
-        twitch: string
-        discord: string
-    }
-}
+
 
 interface EditProfileSheetProps {
     open: boolean
@@ -254,10 +244,28 @@ export function EditProfileSheet({
     }
 
     const handleAvatarSelect = (file: File) => {
+        // 1. Validate size before doing anything
+        if (file.size > 2 * 1024 * 1024) {
+            setErrors(prev => ({ ...prev, avatar: "Image must be under 2MB" }))
+            return
+        }
+
+        // 2. Revoke the old preview URL before creating a new one
+        if (avatarPreview) {
+            URL.revokeObjectURL(avatarPreview)
+        }
+
         setAvatarFile(file)
-        const url = URL.createObjectURL(file)
-        setAvatarPreview(url)
+        setAvatarPreview(URL.createObjectURL(file))
+        setErrors(prev => ({ ...prev, avatar: undefined }))
     }
+
+// 3. Clean up when the component unmounts
+    React.useEffect(() => {
+        return () => {
+            if (avatarPreview) URL.revokeObjectURL(avatarPreview)
+        }
+    }, [avatarPreview])
 
     const handleSave = async () => {
         const validationErrors = validate(form)

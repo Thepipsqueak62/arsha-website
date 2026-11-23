@@ -17,7 +17,6 @@ export default function ArshaPage() {
                 Welcome to{" "}
                 <span style={{ color: "#7F77DD" }}>Arsha App</span>
             </h1>
-
             <p className="mb-2 max-w-lg text-center text-base" style={{ color: "rgba(255,255,255,0.5)" }}>
                 The competitive esports platform for serious players. Build your
                 professional profile, compete in tournaments, and connect with elite

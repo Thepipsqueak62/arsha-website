@@ -1,68 +1,168 @@
 ﻿"use client";
 
-import { useState } from "react";
-import { Radio, Calendar, Film } from "lucide-react";
-import LiveStreamsPage from "./live/page";
-import UpcomingPage from "./upcoming/page";
-import VodPage from "./vod/page";
-
-type Tab = "live" | "upcoming" | "vods";
-
-const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    {
-        id: "live",
-        label: "Live",
-        icon: <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />,
-    },
-    {
-        id: "upcoming",
-        label: "Upcoming",
-        icon: <Calendar size={13} className="flex-shrink-0" />,
-    },
-    {
-        id: "vods",
-        label: "VODs",
-        icon: <Film size={13} className="flex-shrink-0" />,
-    },
-];
+import { Calendar, Film, Radio, Clock, PlayCircle } from "lucide-react";
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+    Card, CardAction,
+    CardContent,
+    CardDescription, CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
 
 export default function StreamsPage() {
-    const [active, setActive] = useState<Tab>("live");
-
     return (
-        <div className="min-h-screen bg-[#080b12] text-white">
-            {/* ── Tab bar ── */}
-            <div className="sticky top-0 z-30 bg-[#080b12]/90 backdrop-blur-md border-b border-white/[0.06]">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center gap-1">
-                        {TABS.map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActive(tab.id)}
-                                className={`
-                                    relative flex items-center gap-2 px-4 sm:px-6 py-4
-                                    text-sm font-bold tracking-wide transition-colors duration-150
-                                    ${active === tab.id ? "text-white" : "text-white/35 hover:text-white/60"}
-                                `}
-                            >
-                                {tab.icon}
-                                <span>{tab.label}</span>
+        <div className="min-h-screen w-full bg-background">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6">
+                <span className={"text-8xl justify-center flex"}>⚠️</span>
+                <div className={"py-9 pt-9 flex justify-center text-3xl font-bold"}>PAGE IN DEVELOPMENT</div>
 
-                                {/* active indicator bar */}
-                                {active === tab.id && (
-                                    <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-white rounded-t-full" />
-                                )}
-                            </button>
-                        ))}
-                    </div>
+
+                {/* Header */}
+                <div className="space-y-1">
+                    <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
+                        Arsha Streams
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                        Find Upcoming Live and past Arsha Live Streams
+                    </p>
                 </div>
-            </div>
 
-            {/* ── Content ── */}
-            <div>
-                {active === "live"     && <LiveStreamsPage />}
-                {active === "upcoming" && <UpcomingPage />}
-                {active === "vods"     && <VodPage />}
+                {/* Tabs */}
+                <Tabs defaultValue="live" className="flex flex-col w-full space-y-4">
+
+                    <TabsList className="
+            inline-flex h-10 items-center
+            w-full sm:w-fit
+            bg-muted/40
+            rounded-lg
+            p-1
+            gap-1
+          ">
+                        <TabsTrigger
+                            value="live"
+                            className="flex items-center gap-2 text-xs sm:text-sm rounded-md px-3 data-[state=active]:bg-red-500/10 data-[state=active]:text-red-500"
+                        >
+                            <span className="relative flex h-2 w-2 shrink-0">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                            </span>
+                            Live
+                        </TabsTrigger>
+
+                        <TabsTrigger
+                            value="upcoming"
+                            className="flex items-center gap-2 text-xs sm:text-sm rounded-md px-3"
+                        >
+                            <Calendar size={14} />
+                            Upcoming
+                        </TabsTrigger>
+
+                        <TabsTrigger
+                            value="vods"
+                            className="flex items-center gap-2 text-xs sm:text-sm rounded-md px-3"
+                        >
+                            <Film size={14} />
+                            VODs
+                        </TabsTrigger>
+                    </TabsList>
+
+                    {/* LIVE */}
+                    <TabsContent value="live" className="mt-0">
+                        <Card className="w-full border-red-500/20 bg-gradient-to-br from-red-500/[0.04] to-transparent">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-base">
+                                    <Radio size={16} className="text-red-500" />
+                                    Live Now
+                                </CardTitle>
+                                <CardDescription>
+                                    Active streams and real-time status.
+                                </CardDescription>
+                            </CardHeader>
+
+                            <CardContent >
+                                <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+                                    Streams
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    {/* UPCOMING */}
+                    <TabsContent value="upcoming" className="mt-0">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-base">Upcoming Streams</CardTitle>
+                                <CardDescription>
+                                    Scheduled broadcasts and future events.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex items-center gap-3 rounded-lg border bg-muted/20 p-4">
+                                    <div className="rounded-full bg-primary/10 p-2 shrink-0">
+                                        <Clock size={16} className="text-primary" />
+                                    </div>
+                                    <div className="text-sm">
+                                        <span className="font-medium">2 streams</span>
+                                        <span className="text-muted-foreground"> scheduled this week.</span>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    {/* VODS */}
+                    <TabsContent value="vods" className="mt-0">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-base">Past Streams</CardTitle>
+                                <CardDescription>
+                                    Watch and manage recorded streams.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex items-center gap-3 rounded-lg border bg-muted/20 p-4">
+                                    <div className="rounded-full bg-primary/10 p-2 shrink-0">
+                                        <PlayCircle size={16} className="text-primary" />
+                                    </div>
+                                    <div className="text-sm">
+                                        <span className="font-medium">12 VODs</span>
+                                        <span className="text-muted-foreground"> available.</span>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                </Tabs>
+                <div>
+                    <Card className="w-full max-w-sm border-primary border-2">
+                        <CardHeader>
+                            <CardTitle >NHG VS KRL Valorant</CardTitle>
+                            <CardDescription>
+                                NHG vs KRL Valorant Tournament come watch 2 of the best teams in North America face off
+                                at Arsha Finals
+                            </CardDescription>
+
+                        </CardHeader>
+                        <CardContent>
+                            Something
+                        </CardContent>
+                        <CardFooter className="flex-col gap-2">
+                            <Button type="submit" className="w-full">
+                                WATCH NOW
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                </div>
             </div>
         </div>
     );
